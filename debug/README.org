@@ -1,0 +1,39 @@
+#+TITLE: Interface de débug
+
+* Fonctionnement
+
+La programmation de la raspberry pi se fera en SSH, en utilisant soit vim
+intégré à la rasp, soit Emacs avec Tramp.
+
+La raspberry pi héberge un serveur tcp/udp en parallèle des échanges avec la carte
+nucléo. Ce serveur sera en asynchrone.
+
+Le pc s'y connectera en tant que client, et recevra régulièrement via udp les
+logs envoyés par la rasp (position, commandes et autre) et pourra envoyer des commandes.
+
+Sur le pc, il y aura un shell qui va permettre l'intéraction avec la rasp,
+utilisant le module python =cmd=. Les logs envoyés par la rasp seront stockés
+dans une structure de donnée permettant : de parcourir les logs, de les filtrer, etc.
+
+À ce shell, je compte ajouter une interface graphique, qui va afficher plusieurs
+choses possiblement : l'affichage de la table, avec le robot dessus (possibilité
+de cliquer pour envoyer un ordre au robot), modification de certaines variables
+(vitesse de croisière, les P, I et D par exemple).
+
+Lancer certaines tâches préenregistrées (que ce soit pour de la démo ou le test
+des moteurs, de l'asserv ou encore de l'odométrie).
+
+Je veux aussi pouvoir enregister les logs dans un fichier par match, et pouvoir
+rejouer le match frame by frame pour voir ce qui s'est passé.
+
+* Todo
+
+** TODO Coder un premier shell
+** TODO Coder le serveur tcp/udp coté client et serveur en asynchrone
+** TODO Coder coté serveur l'envoi de log en UDP
+** TODO Coder coté client la réception des logs et l'enregistrement dans une structure de donnée adaptée
+** TODO Coder l'application en QT
+*** TODO Coder l'affichage de la table
+*** TODO Ajouter un panneau pour les logs
+*** TODO Le robot doit apparaitre sur la table
+*** TODO Il doit être au même niveau que les logs
