@@ -1,6 +1,21 @@
 #!/usr/bin/env python
 
 import cmd
+import asyncio
+
+class ClientProtocol(asyncio.Protocol):
+
+    def connection_made(self, transport):
+        peername = transport.get_extra_info('peername')
+        print('Connection from {}'.format(peername))
+        self.transport = transport
+
+    def data_received(self, data):
+        message = data.decode()
+        print('Data received: {!r}'.format(message))
+
+        print('Send: {!r}'.format(message))
+        self.transport.write(data)
 
 class DebugShell(cmd.Cmd):
     """Shell used to interact with the RPI"""
@@ -9,9 +24,14 @@ class DebugShell(cmd.Cmd):
     prompt = '> '
     file = None
 
+    def __init__(self, transport, protocol):
+        super().__init__()
+        self.protocol = protocol
+        self.transport = transport
+
     def do_start(self, arg):
         'Start a process'
-        send("start {}".format(arg))
+        self.send("start {}".format(arg))
 
     def do_set(self, arg):
         'Set the var to a value'
@@ -27,10 +47,15 @@ class DebugShell(cmd.Cmd):
 
     def do_exit(self, arg):
         'Exit the DebugShell'
-        return
+        return True
 
-def send(args):
-    pass
+    def send(self, message):
+        self.transport.write(message.encode())
+
+async def main():
+    loop = asyncio.get_event_loop()
+    transport, protocol = await loop.create_connection(lambda: ClientProtocol(), '127.0.0.1', 8888)
+    DebugShell(transport, protocol).cmdloop()
 
 if __name__ == '__main__':
-    DebugShell().cmdloop()
+    asyncio.run(main())
