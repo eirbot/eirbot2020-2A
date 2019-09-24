@@ -6,15 +6,15 @@ import connection
 
 class ClientConnection(connection.Connection):
 
-    def __init__(self, host, port=1234):
+    def __init__(self, host, port=1234, logs=None):
        super().__init__()
        self.sock.connect((host, port))
-       self.logs = []
+       self.logs = logs
 
     def on_recv(self, data):
         """Add data received in a log structure"""
-        self.logs.append(data)
-        print(self.logs)
+        if self.logs:
+            self.logs.append(data)
 
     def start(self):
         """Start a listener in the background"""

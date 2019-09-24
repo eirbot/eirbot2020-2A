@@ -3,6 +3,7 @@
 import socket
 import sys
 import threading
+import time
 
 import connection
 
@@ -33,9 +34,16 @@ class ServerConnection(connection.Connection):
         else:
             print("No connection established")
 
+    def send_log(self, tag, message):
+        self.send("{} : {} : {}".format(time.time(), tag, message))
+
     def send(self, data):
         """Send data to the last conn"""
+        print(data)
         self.conn.send(data.encode())
+
+    def on_recv(self, data):
+        self.send_log("MSG_FROM_PC", data)
 
 if __name__ == '__main__':
     s = ServerConnection(1234)
