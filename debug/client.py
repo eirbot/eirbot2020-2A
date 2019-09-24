@@ -1,5 +1,7 @@
 # #!/usr/bin/env python
 
+import threading
+
 import connection
 
 class ClientConnection(connection.Connection):
@@ -15,8 +17,12 @@ class ClientConnection(connection.Connection):
         print(self.logs)
 
     def start(self):
+        """Start a listener in the background"""
         self.running = True
+        threading.Thread(target=self.start_listening_thread).start()
 
+    def start_listening_thread(self):
+        """Start a listener in the background"""
         while self.running:
             data = self.sock.recv(1024).decode()
             if data:

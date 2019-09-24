@@ -2,7 +2,7 @@
 
 import socket
 import sys
-import time
+import threading
 
 import connection
 
@@ -20,7 +20,9 @@ class ServerConnection(connection.Connection):
         self.sock.listen(1)
         self.conn, addr = self.sock.accept()
         # print("Inbound connection from {}".format(addr))
+        threading.Thread(target=self.start_listening_thread).start()
 
+    def start_listening_thread(self):
         if self.conn:
             self.running = True
 
@@ -38,5 +40,3 @@ class ServerConnection(connection.Connection):
 if __name__ == '__main__':
     s = ServerConnection(1234)
     s.start()
-    while True:
-        s.send("test")
