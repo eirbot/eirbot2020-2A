@@ -1,29 +1,42 @@
 #!/usr/bin/env python
 
-import asyncio
+import socket
+import sys
+import time
 
-class ServerProtocol(asyncio.Protocol):
+import connection
 
-    def connection_made(self, transport):
-        peername = transport.get_extra_info('peername')
-        print('Connection from {}'.format(peername))
-        self.transport = transport
+class ServerConnection(connection.Connection):
 
-    def data_received(self, data):
-        message = data.decode()
-        print('Data received: {!r}'.format(message))
+    def __init__(self, port):
+        super().__init__()
+        try:
+            self.sock.bind(('localhost', port))
+        except socket.error as msg:
+            print('Bind failed. {} : {}'.format(msg.errno, msg.args))
+            sys.exit()
 
-        print('Send: {!r}'.format(message))
-        self.transport.write(data)
+    def start(self):
+        self.sock.listen(1)
+        self.conn, addr = self.sock.accept()
+        # print("Inbound connection from {}".format(addr))
 
-async def main():
-    loop = asyncio.get_event_loop()
+        if self.conn:
+            self.running = True
 
-    server = await loop.create_server(
-        lambda: ServerProtocol(),
-        '127.0.0.1', 8888)
+            while self.running:
+                data = self.conn.recv(1024).decode()
+                if data:
+                    self.on_recv(data)
+        else:
+            print("No connection established")
 
-    async with server:
-        await server.serve_forever()
+    def send(self, data):
+        """Send data to the last conn"""
+        self.conn.send(data.encode())
 
-asyncio.run(main())
+if __name__ == '__main__':
+    s = ServerConnection(1234)
+    s.start()
+    while True:
+        s.send("test")
