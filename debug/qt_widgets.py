@@ -52,25 +52,23 @@ class ControlPanel(QtWidgets.QWidget):
 
         layout = QtWidgets.QHBoxLayout()
 
-        self.x_label = QtWidgets.QLabel()
-        self.y_label = QtWidgets.QLabel()
-        self.t_label = QtWidgets.QLabel()
+        self.variables_robot = ["x", "y", "theta", "speed"]
+        self.set_vars = ["P", "I", "D"] # vars that can be set
 
-        layout.addWidget(self.x_label)
-        layout.addWidget(self.y_label)
-        layout.addWidget(self.t_label)
+        self.labels = [QtWidgets.QLabel() for _ in self.variables_robot]
+
+        for label in self.labels:
+            layout.addWidget(label)
 
         self.setLayout(layout)
 
     def update_control_values(self):
-        """The position is intended to be send as (x,y,theta)"""
-        position = self.logs.get_last_log_by_tag("POS")
-        position_data = position["data"]
-        if position_data:
-            x, y, t = position[1:-1].split(",")
+        """The position is intended to be send as (x,y,theta,...)"""
+        position = self.logs.get_last_log_by_tag("INFO_ROBOT")["data"]
+        if position:
+            data_vars = position[1:-1].split(",")
         else:
-            x = y = t = "None"
+            data_vars = ["None" for _ in self.variables_robot]
 
-        self.x_label.setText(x)
-        self.y_label.setText(y)
-        self.t_label.setText(t)
+        for value, name in zip(data_vars, self.variables_robot):
+            self.labels[self.variables_robot.index(name)].setText("{}: {}".format(name, value))

@@ -16,7 +16,7 @@ class ClientConnection(connection.Connection):
         print(data)
         if self.logs:
             try:
-                time, tag, log_data = data.split(" : ")
+                time, tag, log_data = data.split(" : ", 2)
                 self.logs.append(time, tag, log_data)
             except Exception as e:
                 print(e)

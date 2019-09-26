@@ -15,7 +15,7 @@ class DebugShell(cmd.Cmd):
 
     def do_start(self, arg):
         'Start a process'
-        self.send("start {}".format(arg))
+        self.send("COMMAND", "start")
 
     def do_set(self, arg):
         'Set the var to a value'
@@ -31,7 +31,7 @@ class DebugShell(cmd.Cmd):
 
     def do_send(self, arg):
         if arg:
-            self.connection.send(arg)
+            self.send("MSG_FROM_PC", arg)
 
     def do_logs(self, arg):
         'Show logs received'
@@ -42,5 +42,9 @@ class DebugShell(cmd.Cmd):
         'Exit the DebugShell'
         return True
 
-    def send(self, message):
-        self.connection.send(message)
+    def send(self, tag, message):
+        self.connection.send("{} {}".format(tag, message))
+
+    def do_simulate(self, arg):
+        'Ask the serveur to return exactly this log'
+        self.send("SIMULATE", arg)

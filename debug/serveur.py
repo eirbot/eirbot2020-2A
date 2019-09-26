@@ -43,7 +43,15 @@ class ServerConnection(connection.Connection):
         self.conn.send(data.encode())
 
     def on_recv(self, data):
-        self.send_log("MSG_FROM_PC", data)
+        tag, message = data.split(" ", 1)
+        if tag == 'SIMULATE':
+            try:
+                tag, message = message.split(" ", 1)
+                self.send_log(tag, message)
+            except:
+                self.send_log("ERROR", "SIMULATE : BAD formatting")
+        else:
+            self.send_log(tag, message)
 
 if __name__ == '__main__':
     s = ServerConnection(1222)
