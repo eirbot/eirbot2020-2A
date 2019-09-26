@@ -13,8 +13,13 @@ class ClientConnection(connection.Connection):
 
     def on_recv(self, data):
         """Add data received in a log structure"""
+        print(data)
         if self.logs:
-            self.logs.append(data)
+            try:
+                time, tag, log_data = data.split(" : ")
+                self.logs.append(time, tag, log_data)
+            except Exception as e:
+                print(e)
 
     def start(self):
         """Start a listener in the background"""
