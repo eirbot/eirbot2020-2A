@@ -5,13 +5,15 @@ class LogStructure:
     def __init__(self):
         self.logs = []
         self.last_log_index = 0
+        self.save_filename = ".log"
 
     def append(self, time, tag, data):
-        self.logs.append({
-            "time": time,
-            "tag": tag,
-            "data": data
-        })
+        log = {"time": time, "tag": tag, "data": data}
+
+        with open(self.save_filename, "a") as f:
+            f.write(log2String(log))
+
+        self.logs.append(log)
 
     def get_tag(self, tag):
         # TODO : implement filter by tag
@@ -35,6 +37,9 @@ class LogStructure:
 
     def __str__(self):
         string = ""
-        for i, log in enumerate(self.logs, 1):
-            string += " {}. {}\n".format(i, log)
+        for log in self.logs:
+            string += log2String(log)
         return string[:-1]
+
+def log2String(log_dict):
+    return "{time} : {tag:8} : {data}\n".format(**log_dict)
