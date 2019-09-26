@@ -50,15 +50,21 @@ class ControlPanel(QtWidgets.QWidget):
 
         self.logs = logs
 
-        layout = QtWidgets.QHBoxLayout()
+        layout = QtWidgets.QGridLayout()
 
         self.variables_robot = ["x", "y", "theta", "speed"]
         self.set_vars = ["P", "I", "D"] # vars that can be set
 
-        self.labels = [QtWidgets.QLabel() for _ in self.variables_robot]
+        self.labels = [QtWidgets.QLabel() for _ in self.variables_robot + self.set_vars]
 
-        for label in self.labels:
-            layout.addWidget(label)
+        for i in range(len(self.variables_robot)):
+            layout.addWidget(self.labels[i], i // 3, i % 3)
+
+        current_nb_row = len(self.variables_robot) // 3 + 1
+
+        for i in range(len(self.set_vars)):
+            layout.addWidget(self.labels[i + len(self.variables_robot)],
+                             i // 3 + current_nb_row, i % 3)
 
         self.setLayout(layout)
 
@@ -72,3 +78,6 @@ class ControlPanel(QtWidgets.QWidget):
 
         for value, name in zip(data_vars, self.variables_robot):
             self.labels[self.variables_robot.index(name)].setText("{}: {}".format(name, value))
+
+        for i in range(len(self.set_vars)):
+            self.labels[i + len(self.variables_robot)].setText(self.set_vars[i])
