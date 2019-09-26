@@ -47,5 +47,11 @@ class ControlPanel(QtWidgets.QWidget):
 
     def __init__(self):
         super().__init__()
-        label = QtWidgets.QLabel(self)
-        label.setText("ControlPanel")
+        layout = QtWidgets.QHBoxLayout()
+
+        layout.addWidget(QtWidgets.QCheckBox())
+        layout.addWidget(QtWidgets.QCheckBox())
+        layout.addWidget(QtWidgets.QCheckBox())
+        
+        self.setLayout(layout)
+

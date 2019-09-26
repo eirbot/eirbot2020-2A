@@ -20,23 +20,20 @@ shell = debug_shell.DebugShell(c)
 
 app = QtWidgets.QApplication([])
 
-HLayout = QtWidgets.QHBoxLayout()
-VLayout = QtWidgets.QHBoxLayout()
+mainLayout = QtWidgets.QGridLayout()
 
-HLayout.addWidget(Table())
-HLayout.addWidget(ControlPanel())
+mainLayout.addWidget(Table(), 0, 0)
+mainLayout.addWidget(ControlPanel(), 0, 1)
 
 console_widget = Console(shell, logs)
-
-VLayout.addLayout(HLayout)
-VLayout.addWidget(console_widget)
+mainLayout.addWidget(console_widget, 1, 0, 1, 2)
 
 timer = QtCore.QTimer()
 timer.timeout.connect(console_widget.update_logs)
-timer.start(100)
+timer.start(200) # unit : ms
 
 window = QtWidgets.QWidget()
-window.setLayout(VLayout)
+window.setLayout(mainLayout)
 window.show()
 
 app.exec_()

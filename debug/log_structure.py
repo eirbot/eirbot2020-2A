@@ -18,7 +18,7 @@ class LogStructure:
         return self.logs
 
     def get_new(self):
-        logs = self.logs[self.last_log_index:]
+        logs = self.logs[self.last_log_index - 1:]
         self.last_log_index = len(self.logs)
         return logs
 
