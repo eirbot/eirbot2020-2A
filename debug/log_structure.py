@@ -22,6 +22,16 @@ class LogStructure:
         self.last_log_index = len(self.logs)
         return logs
 
+    def get_last_log_by_tag(self, tag):
+        for i in range(len(self.logs), 0, -1):
+            if self.logs[i]["tag"] == tag:
+                return self.logs[i]
+        return {
+            "time" :"",
+            "tag"  :"",
+            "data" :"",
+        }
+
     def __str__(self):
         string = ""
         for i, log in enumerate(self.logs, 1):

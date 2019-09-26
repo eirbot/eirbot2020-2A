@@ -46,5 +46,5 @@ class ServerConnection(connection.Connection):
         self.send_log("MSG_FROM_PC", data)
 
 if __name__ == '__main__':
-    s = ServerConnection(1234)
+    s = ServerConnection(1222)
     s.start()

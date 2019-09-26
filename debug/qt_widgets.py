@@ -45,13 +45,32 @@ class Table(QtWidgets.QWidget):
 
 class ControlPanel(QtWidgets.QWidget):
 
-    def __init__(self):
+    def __init__(self, logs):
         super().__init__()
+
+        self.logs = logs
+
         layout = QtWidgets.QHBoxLayout()
 
-        layout.addWidget(QtWidgets.QCheckBox())
-        layout.addWidget(QtWidgets.QCheckBox())
-        layout.addWidget(QtWidgets.QCheckBox())
-        
+        self.x_label = QtWidgets.QLabel()
+        self.y_label = QtWidgets.QLabel()
+        self.t_label = QtWidgets.QLabel()
+
+        layout.addWidget(self.x_label)
+        layout.addWidget(self.y_label)
+        layout.addWidget(self.t_label)
+
         self.setLayout(layout)
 
+    def update_control_values(self):
+        """The position is intended to be send as (x,y,theta)"""
+        position = self.logs.get_last_log_by_tag("POS")
+        position_data = position["data"]
+        if position_data:
+            x, y, t = position[1:-1].split(",")
+        else:
+            x = y = t = "None"
+
+        self.x_label.setText(x)
+        self.y_label.setText(y)
+        self.t_label.setText(t)
