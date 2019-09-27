@@ -66,18 +66,32 @@ class ControlPanel(QtWidgets.QWidget):
             layout.addWidget(self.labels[i + len(self.variables_robot)],
                              i // 3 + current_nb_row, i % 3)
 
+        current_nb_row = (len(self.variables_robot) + len(self.set_vars)) // 3 + 1
+
+        self.swiper = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+
+        layout.addWidget(self.swiper, current_nb_row + 1, 0, 1, 3)
+
         self.setLayout(layout)
+
+        # Set vars, not modified for now
+        for i in range(len(self.set_vars)):
+            self.labels[i + len(self.variables_robot)].setText(self.set_vars[i])
 
     def update_control_values(self):
         """The position is intended to be send as (x,y,theta,...)"""
-        position = self.logs.get_last_log_by_tag("INFO_ROBOT")["data"]
-        if position:
-            data_vars = position[1:-1].split(",")
+        position_logs = self.logs.get_tag("INFO_ROBOT")
+
+        self.swiper.setRange(0, len(position_logs) - 1)
+
+        if position_logs:
+
+            id_current_log = self.swiper.value()
+            position_data = position_logs[id_current_log]["data"]
+            data_vars = position_data[1:-1].split(",")
+
         else:
             data_vars = ["None" for _ in self.variables_robot]
 
         for value, name in zip(data_vars, self.variables_robot):
             self.labels[self.variables_robot.index(name)].setText("{}: {}".format(name, value))
-
-        for i in range(len(self.set_vars)):
-            self.labels[i + len(self.variables_robot)].setText(self.set_vars[i])

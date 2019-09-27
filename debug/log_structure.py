@@ -16,8 +16,7 @@ class LogStructure:
         self.logs.append(log)
 
     def get_tag(self, tag):
-        # TODO : implement filter by tag
-        return self.logs
+        return [log for log in self.logs if log["tag"] == tag]
 
     def get_new(self):
         logs = self.logs[self.last_log_index:]
