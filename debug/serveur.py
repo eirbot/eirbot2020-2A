@@ -4,6 +4,7 @@ import socket
 import sys
 import threading
 import time
+import random
 
 import connection
 
@@ -16,15 +17,17 @@ class ServerConnection(connection.Connection):
         except socket.error as msg:
             print('Bind failed. {} : {}'.format(msg.errno, msg.args))
             sys.exit()
+        self.has_client = False
 
     def start(self):
         self.sock.listen(1)
         self.conn, addr = self.sock.accept()
+        self.has_client = True
         # print("Inbound connection from {}".format(addr))
         threading.Thread(target=self.start_listening_thread).start()
 
     def start_listening_thread(self):
-        if self.conn:
+        if self.has_client:
             self.running = True
 
             while self.running:
@@ -54,5 +57,13 @@ class ServerConnection(connection.Connection):
             self.send_log(tag, message)
 
 if __name__ == '__main__':
-    s = ServerConnection(1222)
+    s = ServerConnection(1234)
     s.start()
+    while True:
+        time.sleep(1)
+        if s.has_client:
+            x = random.randint(1, 100)
+            y = random.randint(1, 100)
+            t = random.randint(1, 100)
+            speed = random.randint(1, 100)
+            s.send_log("INFO_ROBOT", "({},{},{},{})".format(x, y, t, speed))
