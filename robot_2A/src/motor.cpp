@@ -2,10 +2,7 @@
 
 
 Motor::Motor(void) {
-  
 }
 
-Motor::setRatio(int16_t ratio) {
-
+void Motor::setRatio(int16_t ratio) {
 }
-
