@@ -2,7 +2,6 @@
 #define MOTOR_H
 
 #include <cstdint>
-
 /* Class to work with a motor alone. */
 class Motor {
    

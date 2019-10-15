@@ -2,18 +2,22 @@
 #define __ENCODER_H_
 
 #include "mbed.h"
+#include <cstdint>
 
 class Encoder
 {
-    public:
-        Encoder(TIM_TypeDef* TIM);
-        Encoder();
-        void reset();
-        short get();
-        short diff();
-        short lastValue;
-    private:
-        TIM_TypeDef* TIM;
+public:
+  Encoder(TIM_TypeDef* TIM);
+
+  /* Return the absolute distance recorded by the encoder 
+   * since the beginning of the program.
+   * unit: encoder tick */
+  int32_t getDistance(void);
+private:
+  void reset();
+  short lastValue;
+  short diff();
+  TIM_TypeDef* TIM;
 };
 
 

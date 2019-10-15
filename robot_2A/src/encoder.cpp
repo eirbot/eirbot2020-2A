@@ -1,5 +1,4 @@
 #include "encoder.hpp"
-#include "mbed.h"
 /**
  * Ce fichier gère les encodeurs.
  */
@@ -62,7 +61,7 @@ void TIM3_EncoderInit() {
 
 void Encoder::reset() { TIM->CNT = 0; }
 
-short Encoder::get() { return TIM->CNT; }
+int32_t Encoder::getDistance() { return TIM->CNT; }
 
 short Encoder::diff() {
   short currentVal = get();
