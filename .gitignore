@@ -38,3 +38,5 @@ __pycache__/
 build-*
 *.user
 *.user.*
+
+*~

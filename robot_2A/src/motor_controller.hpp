@@ -2,6 +2,8 @@
 #define MOTOR_CONTROLLER_H
 
 #include <cstdint>
+#include "encoder.hpp"
+#include "motor.hpp"
 
 /* Class to work with a association of a motor and an encoder.
  * This class does an asserv in speed.
@@ -16,6 +18,10 @@ public:
   void setSpeed(float speed);
 
 private:
+  Encoder encoder;
+  Motor motor;
+  float speed;
+ 
   
 };
 

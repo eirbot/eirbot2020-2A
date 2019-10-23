@@ -3,7 +3,8 @@
  * Ce fichier gère les encodeurs.
  */
 
-Encoder::Encoder(TIM_TypeDef *_TIM) {
+Encoder::Encoder(Input encoder) {
+  _TIM = TIM3; // Manually for now
   TIM = _TIM;
   lastValue = 0;
 

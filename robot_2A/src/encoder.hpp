@@ -7,7 +7,7 @@
 class Encoder
 {
 public:
-  Encoder(TIM_TypeDef* TIM);
+  Encoder(Input encoder);
 
   /* Return the absolute distance recorded by the encoder 
    * since the beginning of the program.

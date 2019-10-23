@@ -1,7 +1,9 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
+#include <bits/stdint-intn.h>
 #include <cstdint>
+
 /* Class to work with a motor alone. */
 class Motor {
    
@@ -13,6 +15,8 @@ public:
   void setRatio(int16_t ratio);
 
 private:
+  Output pwm;
+  int16_t ratio;
   
 };
 
