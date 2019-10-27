@@ -7,22 +7,23 @@
 class Encoder
 {
 public:
-  Encoder(Input encoder);
+  Encoder(TIM_TypeDef* timer);
 
   /* Return the absolute distance recorded by the encoder 
    * since the beginning of the program.
    * unit: encoder tick */
   int32_t getDistance(void);
-private:
+
+public:
   void reset();
-  short lastValue;
   short diff();
+
+private:
   TIM_TypeDef* TIM;
+  uint16_t lastValue;
 };
 
-
-void TIM3_EncoderInit();
-
-void TIM4_EncoderInit();
+extern Encoder enc_l;
+extern Encoder enc_r;
 
 #endif // __ENCODER_H_

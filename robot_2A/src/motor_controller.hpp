@@ -11,18 +11,17 @@
 class MotorController {
    
 public:
-  MotorController(void);
+  MotorController(Motor& mot, Encoder& enc);
 
   /* Set the speed of the encoder.
    * unit: radian/s */ 
   void setSpeed(float speed);
 
 private:
-  Encoder encoder;
-  Motor motor;
+  Motor& motor;
+  Encoder& encoder;
+
   float speed;
- 
-  
 };
 
-#endif MOTOR_CONTROLLER_H
+#endif // MOTOR_CONTROLLER_H

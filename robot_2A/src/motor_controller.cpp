@@ -1,8 +1,7 @@
 #include "motor_controller.hpp"
 
-MotorController::MotorController(Output motor_pwm, Input encoder) {
-  motor = Motor(motor_pwm);
-  encoder = Encoder(encoder);
+MotorController::MotorController(Motor& mot, Encoder& enc)
+  : motor(mot), encoder(enc) {
 }
 
 void MotorController::setSpeed(float _speed) {

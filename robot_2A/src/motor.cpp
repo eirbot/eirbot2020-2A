@@ -1,10 +1,12 @@
 #include "motor.hpp"
 
+#include <math.h>
 
-Motor::Motor(Output _motor_pwm) {
-  pwm = _motor_pwm
+Motor::Motor(PinName pwm_pin, PinName dir_pin, PinName break_pin)
+  : _pwm(pwm_pin), _dir(dir_pin), _break(break_pin) {
 }
 
-void Motor::setRatio(int16_t _ratio) {
-  ratio = _ratio;
+void Motor::setRatio(float ratio) {
+  _pwm.write(abs(ratio));
+  _dir = (ratio <= 0);
 }
