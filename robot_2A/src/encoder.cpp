@@ -1,20 +1,9 @@
-#include "encoder.hpp"
 /**
  * Ce fichier gère les encodeurs.
  */
 
-Encoder::Encoder(Input encoder) {
-  _TIM = TIM3; // Manually for now
-  TIM = _TIM;
-  lastValue = 0;
+#include "encoder.hpp"
 
-  if (TIM == TIM4)
-    TIM4_EncoderInit();
-  if (TIM == TIM3)
-    TIM3_EncoderInit();
-}
-
-Encoder::Encoder() {}
 /**
  *  Initialisation de l'encodeur.
  */
@@ -60,12 +49,26 @@ void TIM3_EncoderInit() {
   TIM3->CNT = 0;        // Initialize counter
 }
 
-void Encoder::reset() { TIM->CNT = 0; }
+Encoder::Encoder(TIM_TypeDef* timer)
+  : TIM(timer), lastValue(0) {
 
-int32_t Encoder::getDistance() { return TIM->CNT; }
+  if (TIM == TIM4)
+    TIM4_EncoderInit();
+  if (TIM == TIM3)
+    TIM3_EncoderInit();
+
+}
+
+void Encoder::reset() {
+  TIM->CNT = 0;
+}
+
+int32_t Encoder::getDistance() {
+  return TIM->CNT;
+}
 
 short Encoder::diff() {
-  short currentVal = get();
+  short currentVal = TIM->CNT;
   short diff = (currentVal - lastValue);
   lastValue = currentVal;
   return diff;

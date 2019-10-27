@@ -71,7 +71,7 @@ void send_signal_exp(void);
 
 int debug_monitor = 1;
 int running = 1;
-int move = 1;
+int enable_move = 1;
 enum Side side;
 
 void setup() {
@@ -377,12 +377,12 @@ void handleInput() {
   }
 
   if (c == 'm') {
-    move = move ? 0 : 1;
-    if (move)
+    enable_move = enable_move ? 0 : 1;
+    if (enable_move)
       printf("\nMouvement activé.\n");
     else
       printf("\nMouvement désactivé.\n");
-    if (!move) {
+    if (!enable_move) {
       frein();
     }
   }
@@ -454,7 +454,7 @@ void test_rotation() {
     nav.print_pos();
     printf("%f %f %f ", command, cml, cmr);
 
-    if (move) {
+    if (enable_move) {
       motor_l.write(cml);
       motor_r.write(cmr);
     }

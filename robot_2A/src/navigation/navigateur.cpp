@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 extern int debug_monitor;
-extern int move;
+extern int enable_move;
 extern int running;
 
 Navigateur::Navigateur(Position *_position, PwmOut *_m_l, PwmOut *_m_r,
@@ -169,7 +169,7 @@ void Navigateur::update() {
   limiter_consigne(&cmr, &dir_r);
   limiter_consigne(&cml, &dir_l);
 
-  if (move) {
+  if (enable_move) {
     m_r->write(cmr);
     m_l->write(cml);
   }
