@@ -10,21 +10,19 @@ DEFINES += QT_COMPIL
 LIBS += -lWs2_32
 LIBS += -lWinmm
 
-INCLUDEPATH += ../vrep
+VREP_PATH = "C:/Program Files/V-REP3/V-REP_PRO_EDU"
 
-SOURCES += main.cpp \
-    ../vrep/extApi.c \
-    ../vrep/extApiCustom.c \
-    ../vrep/extApiPlatform.c
+VREP_REMOTEAPI_PATH = $$VREP_PATH/programming/remoteApi
 
-HEADERS += \
-    ../vrep/extApi.h \
-    ../vrep/extApiCustom.h \
-    ../vrep/extApiCustomConst.h \
-    ../vrep/extApiInternal.h \
-    ../vrep/extApiPlatform.h \
-    ../vrep/socketInConnection.h \
-    ../vrep/socketOutConnection.h \
-    ../vrep/v_repConst.h \
-    ../vrep/v_repLib.h \
-    ../vrep/v_repTypes.h
+INCLUDEPATH += $$VREP_REMOTEAPI_PATH
+INCLUDEPATH += $$VREP_PATH/programming/include
+
+SOURCES += main.cpp
+
+SOURCES += $$VREP_REMOTEAPI_PATH/extApi.c
+SOURCES += $$VREP_REMOTEAPI_PATH/extApiPlatform.c
+SOURCES += $$VREP_PATH/programming/common/shared_memory.c
+
+HEADERS += $$VREP_REMOTEAPI_PATH/extApi.h
+HEADERS += $$VREP_REMOTEAPI_PATH/extApiPlatform.h
+HEADERS += $$VREP_REMOTEAPI_PATH/extApiIntrenal.h
