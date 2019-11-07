@@ -30,10 +30,7 @@ class DebugShell(cmd.Cmd):
         if not len(args) == 2:
             print("Not the right number of arguments")
         else:
-            var_name = args[0]
-            var_value = args[1]
-
-            # TODO: Send set command to RPI
+            self.send("SET", arg)
 
     def do_send(self, arg):
         """
