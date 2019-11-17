@@ -46,7 +46,7 @@ int main(void)
     cout << "Enter motors speed : " << endl;
     cin >> v;
     simxSetJointTargetVelocity(client_id, left_motor_handle, v*0.01745322, simx_opmode_oneshot_wait);
-    simxSetJointTargetVelocity(client_id, right_motor_handle, -v*0.01745322, simx_opmode_oneshot_wait);
+    simxSetJointTargetVelocity(client_id, right_motor_handle, v*0.01745322, simx_opmode_oneshot_wait);
   }
 
   for(int i = 0 ; i < 10 ; i++) {
