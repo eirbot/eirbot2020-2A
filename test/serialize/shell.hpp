@@ -1,21 +1,21 @@
 #ifndef SHELL_HPP
 #define SHELL_HPP
 
-template<class InputStream, class OutputStream, class Cmd>
+template<class InputStream, class OutputStream, class CmdList, unsigned int ARGC_MAX = 16, unsigned int ARGV_DATA_MAX_SIZE = 255>
 class Shell {
 private:
   InputStream& _in;
   OutputStream& _out;
-  Cmd& _cmd;
+  CmdList& _cmd_list;
 
-  char _argv_data[256] = {0};
+  char _argv_data[ARGV_DATA_MAX_SIZE] = {0};
 
-  char* _argv[16] = {0};
+  char* _argv[ARGC_MAX] = {0};
   int _argc = 0;
 
 public:
-  Shell(InputStream& in, OutputStream& out, Cmd& cmd)
-    : _in(in), _out(out), _cmd(cmd) {
+  Shell(InputStream& in, OutputStream& out, CmdList& cmd_list)
+    : _in(in), _out(out), _cmd_list(cmd_list) {
   }
 
 private:
@@ -71,7 +71,7 @@ public:
 
         _argv[_argc]++;
 
-        typename Cmd::Main func = _cmd[_argv[0]];
+        typename CmdList::Main func = _cmd_list[_argv[0]];
 
         if (func) {
           func(_argc, _argv);
