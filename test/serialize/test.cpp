@@ -11,39 +11,39 @@ void test(void)
   SimpleDynamicRandomAccessStream ar(lool);
   char buff[sizeof(lool)];
 
-  lool.a = 42;
-  lool.b = 666;
-  lool.c = 69;
-  lool.d = 0xFFFFFFFF;
+  lool.a = 666;
+  lool.b = 42;
+  lool.c = 0xFF00FF00;
+  lool.d = 69;
 
-  ar.read(buff, sizeof(buff));
+  ar.read(buff, ar.size());
 
   cout << "size : " << ar.size() << endl;
-  for (int i = 0 ; i < sizeof(buff) ; i++) {
-    cout << (unsigned int)(unsigned char)buff[i] << endl;
+  for (unsigned int i = 0 ; i < ar.size() ; i++) {
+    cout << static_cast<unsigned int>(static_cast<unsigned char>(buff[i])) << endl;
     buff[i] = 0;
   }
 
   lool.c = 0xDEADBEEF;
 
-  ar.read(buff, sizeof(buff));
+  ar.read(buff, ar.size());
 
   cout << "size : " << ar.size() << endl;
-  for (int i = 0 ; i < sizeof(buff) ; i++) {
-    cout << (unsigned int)(unsigned char)buff[i] << endl;
+  for (unsigned int i = 0 ; i < ar.size() ; i++) {
+    cout << static_cast<unsigned int>(static_cast<unsigned char>(buff[i])) << endl;
     buff[i] = 0;
   }
 
-  char a = 0xEE;
-  ar.seek(8);
+  char a = static_cast<char>(0xEE);
+  ar.seek(sizeof(lool.a)+sizeof(lool.b));
   ar.write(&a, 1);
   ar.seek(0);
 
-  ar.read(buff, sizeof(buff));
+  ar.read(buff, ar.size());
 
   cout << "size : " << ar.size() << endl;
-  for (int i = 0 ; i < sizeof(buff) ; i++) {
-    cout << (unsigned int)(unsigned char)buff[i] << endl;
+  for (unsigned int i = 0 ; i < ar.size() ; i++) {
+    cout << static_cast<unsigned int>(static_cast<unsigned char>(buff[i])) << endl;
     buff[i] = 0;
   }
 }

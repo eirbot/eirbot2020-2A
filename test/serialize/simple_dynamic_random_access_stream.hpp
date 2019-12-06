@@ -14,10 +14,23 @@ class SimpleDynamicRandomAccessStream {
 private:
   struct Size {
     unsigned int size = 0;
-    Size& operator<< (int val) {
-      size += sizeof(val);
+
+    Size& add(unsigned int add_size) {
+      size += add_size;
       return *this;
     }
+
+    Size& operator<< (char val) { return add(sizeof(val)); }
+    Size& operator<< (short val) { return add(sizeof(val)); }
+    Size& operator<< (int val) { return add(sizeof(val)); }
+    Size& operator<< (long val) { return add(sizeof(val)); }
+    Size& operator<< (long long val) { return add(sizeof(val)); }
+
+    Size& operator<< (unsigned char val) { return add(sizeof(val)); }
+    Size& operator<< (unsigned short val) { return add(sizeof(val)); }
+    Size& operator<< (unsigned int val) { return add(sizeof(val)); }
+    Size& operator<< (unsigned long val) { return add(sizeof(val)); }
+    Size& operator<< (unsigned long long val) { return add(sizeof(val)); }
 
     template<typename T, typename String>
     Size& operator<< (Named<T, String>&&) {
@@ -35,22 +48,34 @@ private:
       : cursor(cursor), size(size), buff(buff) {
     }
 
-    Read& operator<< (int val) {
+    Read& read(const char* const data, const unsigned int len) {
       if (size > 0) {
-        if (cursor < sizeof(val)) {
-          unsigned int s = std::min(size, static_cast<unsigned int>(sizeof(val)) - cursor);
-          std::memcpy(buff, reinterpret_cast<char*>(&val) + cursor, s);
+        if (cursor < len) {
+          unsigned int s = std::min(size, static_cast<unsigned int>(len) - cursor);
+          std::memcpy(buff, data + cursor, s);
           size -= s;
           cursor = 0;
           buff += s;
         }
         else {
-          cursor -= sizeof(val);
+          cursor -= len;
         }
       }
 
       return *this;
     }
+
+    Read& operator<< (char& val) { return read(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Read& operator<< (short& val) { return read(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Read& operator<< (int& val) { return read(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Read& operator<< (long& val) { return read(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Read& operator<< (long long& val) { return read(reinterpret_cast<char*>(&val), sizeof(val)); }
+
+    Read& operator<< (unsigned char& val) { return read(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Read& operator<< (unsigned short& val) { return read(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Read& operator<< (unsigned int& val) { return read(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Read& operator<< (unsigned long& val) { return read(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Read& operator<< (unsigned long long& val) { return read(reinterpret_cast<char*>(&val), sizeof(val)); }
 
     template<typename T, typename String>
     Read& operator<< (Named<T, String>&& named) {
@@ -67,22 +92,34 @@ private:
       : cursor(cursor), size(size), buff(buff) {
     }
 
-    Write& operator<< (int& val) {
+    Write& write(char* const data, const unsigned int len) {
       if (size > 0) {
-        if (cursor < sizeof(val)) {
-          unsigned int s = std::min(size, static_cast<unsigned int>(sizeof(val)) - cursor);
-          std::memcpy(reinterpret_cast<char*>(&val) + cursor, buff, s);
+        if (cursor < len) {
+          unsigned int s = std::min(size, static_cast<unsigned int>(len) - cursor);
+          std::memcpy(data + cursor, buff, s);
           size -= s;
           cursor = 0;
           buff += s;
         }
         else {
-          cursor -= sizeof(val);
+          cursor -= len;
         }
       }
 
       return *this;
     }
+
+    Write& operator<< (char& val) { return write(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Write& operator<< (short& val) { return write(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Write& operator<< (int& val) { return write(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Write& operator<< (long& val) { return write(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Write& operator<< (long long& val) { return write(reinterpret_cast<char*>(&val), sizeof(val)); }
+
+    Write& operator<< (unsigned char& val) { return write(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Write& operator<< (unsigned short& val) { return write(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Write& operator<< (unsigned int& val) { return write(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Write& operator<< (unsigned long& val) { return write(reinterpret_cast<char*>(&val), sizeof(val)); }
+    Write& operator<< (unsigned long long& val) { return write(reinterpret_cast<char*>(&val), sizeof(val)); }
 
     template<typename T, typename String>
     Write& operator<< (Named<T, String>&& named) {
