@@ -1,9 +1,14 @@
-#include "test.hpp"
+#include "lool.hpp"
+#include "simple_dynamic_random_access_stream.hpp"
+
+#include <iostream>
+
+using namespace std;
 
 void test(void)
 {
   Lool lool;
-  archive::DynamicRandomAccessStream ar(lool);
+  SimpleDynamicRandomAccessStream ar(lool);
   char buff[sizeof(lool)];
 
   lool.a = 42;

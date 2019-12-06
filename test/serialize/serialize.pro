@@ -7,5 +7,7 @@ SOURCES += main.cpp \
 	test.cpp
 
 HEADERS += \
+	archive.hpp \
+	lool.hpp \
 	shell.hpp \
-	test.hpp
+	simple_dynamic_random_access_stream.hpp
