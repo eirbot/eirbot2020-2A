@@ -1,28 +1,29 @@
-#ifndef TEST_H
-#define TEST_H
+#ifndef SIMPLE_DYNAMIC_RANDOM_ACCESS_STREAM_HPP
+#define SIMPLE_DYNAMIC_RANDOM_ACCESS_STREAM_HPP
 
-#include <iostream>
-#include <cmath>
+#include <cstring>
+#include <algorithm>
 
-using namespace std;
+#include "archive.hpp"
 
-namespace archive {
+namespace simple_dynamic_random_access_stream {
 
-namespace internal {
+using namespace archive;
 
-class DynamicRandomAccessStream {
+class SimpleDynamicRandomAccessStream {
 private:
   struct Size {
     unsigned int size = 0;
     Size& operator<< (int val) {
-      size += sizeof (val);
+      size += sizeof(val);
       return *this;
     }
 
-//    template<typename T>
-//    Size& operator<< (T val) {
-//      return archive::Helper<Size, T>(*this) << val;
-//    }
+    template<typename T, typename String>
+    Size& operator<< (Named<T, String>&&) {
+      size += sizeof(T);
+      return *this;
+    }
   };
 
   struct Read {
@@ -35,13 +36,10 @@ private:
     }
 
     Read& operator<< (int val) {
-      //cout << "cursor : " << cursor << endl;
-      //cout << "size : " << size << endl;
-
       if (size > 0) {
         if (cursor < sizeof(val)) {
-          unsigned int s = min(size, (unsigned int)sizeof(val) - cursor);
-          memcpy(buff, ((char*)&val) + cursor, s);
+          unsigned int s = std::min(size, static_cast<unsigned int>(sizeof(val)) - cursor);
+          std::memcpy(buff, reinterpret_cast<char*>(&val) + cursor, s);
           size -= s;
           cursor = 0;
           buff += s;
@@ -54,10 +52,10 @@ private:
       return *this;
     }
 
-//    template<typename T>
-//    Read& operator<< (T val) {
-//      return archive::Helper<Read, T>(*this) << val;
-//    }
+    template<typename T, typename String>
+    Read& operator<< (Named<T, String>&& named) {
+      return *this << named.variable;
+    }
   };
 
   struct Write {
@@ -70,13 +68,10 @@ private:
     }
 
     Write& operator<< (int& val) {
-      //cout << "cursor : " << cursor << endl;
-      //cout << "size : " << size << endl;
-
       if (size > 0) {
         if (cursor < sizeof(val)) {
-          unsigned int s = min(size, (unsigned int)sizeof(val) - cursor);
-          memcpy(((char*)&val) + cursor, buff, s);
+          unsigned int s = std::min(size, static_cast<unsigned int>(sizeof(val)) - cursor);
+          std::memcpy(reinterpret_cast<char*>(&val) + cursor, buff, s);
           size -= s;
           cursor = 0;
           buff += s;
@@ -89,39 +84,39 @@ private:
       return *this;
     }
 
-//    template<typename T>
-//    Write& operator<< (T& val) {
-//      return archive::Helper<Write, T>(*this) << val;
-//    }
+    template<typename T, typename String>
+    Write& operator<< (Named<T, String>&& named) {
+      return *this << named.variable;
+    }
   };
 
 private:
   unsigned int cursor = 0;
 
-  void* data_ptr = 0;
+  void* data_ptr = nullptr;
 
   using ReadFunc = Read& (*)(Read&, void*);
-  ReadFunc read_func = 0;
+  ReadFunc read_func = nullptr;
 
   using WriteFunc = Write& (*)(Write&, void*);
-  WriteFunc write_func = 0;
+  WriteFunc write_func = nullptr;
 
   using SizeFunc = Size& (*)(Size&, void*);
-  SizeFunc size_func = 0;
+  SizeFunc size_func = nullptr;
 
 public:
   template<typename T>
-  DynamicRandomAccessStream(T& val) {
+  SimpleDynamicRandomAccessStream(T& val) {
     read_func = [](Read& r, void* ptr) -> Read& {
-      return r << *(T*)ptr;
+      return r << *static_cast<T*>(ptr);
     };
 
     write_func = [](Write& w, void* ptr) -> Write& {
-      return w << *(T*)ptr;
+      return w << *static_cast<T*>(ptr);
     };
 
     size_func = [](Size& s, void* ptr) -> Size& {
-      return s << *(T*)ptr;
+      return s << *static_cast<T*>(ptr);
     };
 
     data_ptr = &val;
@@ -150,30 +145,6 @@ public:
 
 }
 
-using namespace internal;
+using simple_dynamic_random_access_stream::SimpleDynamicRandomAccessStream;
 
-}
-
-struct Lool {
-  int a;
-  int b;
-  int c;
-  int d;
-};
-
-namespace archive {
-
-template<typename Archive>
-Archive& operator<<(Archive& ar, Lool& lool) {
-  ar << lool.a << lool.b << lool.c;
-  if (lool.c == 0xDEADBEEF) {
-    ar << lool.d;
-  }
-  return ar;
-};
-
-}
-
-void test(void);
-
-#endif // TEST_H
+#endif // SIMPLE_DYNAMIC_RANDOM_ACCESS_STREAM_HPP

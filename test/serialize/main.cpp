@@ -1,7 +1,9 @@
 #include "shell.hpp"
-#include "test.hpp"
+#include "lool.hpp"
 
 #include <iostream>
+
+extern void test(void);
 
 using namespace std;
 
@@ -39,6 +41,8 @@ struct MyStdOut {
 struct MyCmd {
   using Func = int (*)(void* obj, int argc, char* argv[]);
 
+  bool run_shell = true;
+
   struct Main {
     void* obj;
     Func func;
@@ -46,7 +50,7 @@ struct MyCmd {
     Main(void* obj, Func func) : obj(obj), func(func) {}
 
     int operator()(int argc, char* argv[]) {
-      func(obj, argc, argv);
+      return func(obj, argc, argv);
     }
 
     operator bool(void) {
@@ -64,16 +68,23 @@ struct MyCmd {
     return 0;
   }
 
+  void exit(void) {
+    run_shell = false;
+  }
+
   Main operator[] (char* cmdname) {
     if (string(cmdname) == string("echo")) {
-      return Main(this, [](void*obj, int argc, char* argv[]) -> int { return ((MyCmd*)obj)->echo(argc, argv); });
+      return Main(this, [](void*obj, int argc, char* argv[]) -> int { return static_cast<MyCmd*>(obj)->echo(argc, argv); });
     }
     if (string(cmdname) == string("test")) {
-      return Main(0, [](void*obj, int argc, char* argv[]) -> int { test(); return 0; });
+      return Main(nullptr, [](void*, int , char* []) -> int { test(); return 0; });
+    }
+    if (string(cmdname) == string("exit")) {
+      return Main(this, [](void* obj, int , char* []) -> int { static_cast<MyCmd*>(obj)->exit(); return 0; });
     }
     else {
       cout << "unknown" << endl;
-      return Main(0,0);
+      return Main(nullptr, nullptr);
     }
   }
 };
@@ -85,7 +96,7 @@ int main()
   MyCmd mycmd;
   Shell<MyStdIn, MyStdOut, MyCmd> shell(mystdin, mystdout, mycmd);
 
-  while(1) {
+  while(mycmd.run_shell) {
     shell.update();
   }
 
