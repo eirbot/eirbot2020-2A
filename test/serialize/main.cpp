@@ -54,9 +54,9 @@ struct MyCmd {
     }
   };
 
-  int test(int argc, char* argv[]) {
+  int echo(int argc, char* argv[]) {
 
-    for (int i = 0 ; i < argc ; i++) {
+    for (int i = 1 ; i < argc ; i++) {
       cout << argv[i] << " ";
     }
     cout << endl;
@@ -65,8 +65,11 @@ struct MyCmd {
   }
 
   Main operator[] (char* cmdname) {
+    if (string(cmdname) == string("echo")) {
+      return Main(this, [](void*obj, int argc, char* argv[]) -> int { return ((MyCmd*)obj)->echo(argc, argv); });
+    }
     if (string(cmdname) == string("test")) {
-      return Main(this, [](void*obj, int argc, char* argv[]) -> int { return ((MyCmd*)obj)->test(argc, argv); });
+      return Main(0, [](void*obj, int argc, char* argv[]) -> int { test(); return 0; });
     }
     else {
       cout << "unknown" << endl;

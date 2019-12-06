@@ -6,21 +6,6 @@
 
 using namespace std;
 
-namespace serialize {
-
-template<typename Archive, typename T>
-class Helper {
-  Archive& ar;
-public:
-  Helper(Archive& ar) : ar(ar) {}
-
-  Archive& operator<<(T& val) {
-    return ar << val;
-  }
-};
-
-}
-
 namespace archive {
 
 namespace internal {
@@ -34,10 +19,10 @@ private:
       return *this;
     }
 
-    template<typename T>
-    Size& operator<< (T val) {
-      return serialize::Helper<Size, T>(*this) << val;
-    }
+//    template<typename T>
+//    Size& operator<< (T val) {
+//      return archive::Helper<Size, T>(*this) << val;
+//    }
   };
 
   struct Read {
@@ -69,10 +54,10 @@ private:
       return *this;
     }
 
-    template<typename T>
-    Read& operator<< (T val) {
-      return serialize::Helper<Read, T>(*this) << val;
-    }
+//    template<typename T>
+//    Read& operator<< (T val) {
+//      return archive::Helper<Read, T>(*this) << val;
+//    }
   };
 
   struct Write {
@@ -104,10 +89,10 @@ private:
       return *this;
     }
 
-    template<typename T>
-    Write& operator<< (T& val) {
-      return serialize::Helper<Write, T>(*this) << val;
-    }
+//    template<typename T>
+//    Write& operator<< (T& val) {
+//      return archive::Helper<Write, T>(*this) << val;
+//    }
   };
 
 private:
