@@ -8,8 +8,6 @@
 
 namespace dynamic_archive_random_access_stream {
 
-using namespace archive;
-
 class DynamicArchiveRandomAccessStream {
 private:
   struct Size {
@@ -33,9 +31,13 @@ private:
     Size& operator<< (unsigned long long val) { return add(sizeof(val)); }
 
     template<typename T, typename String>
-    Size& operator<< (Named<T, String>&&) {
-      size += sizeof(T);
-      return *this;
+    Size& operator<< (archive::Named<T, String>&& named) {
+      return *this << named.variable;
+    }
+
+    template<typename T>
+    Size& operator<< (T val) {
+      return archive::serialize(*this, val);
     }
   };
 
@@ -78,8 +80,13 @@ private:
     Read& operator<< (unsigned long long& val) { return read(reinterpret_cast<char*>(&val), sizeof(val)); }
 
     template<typename T, typename String>
-    Read& operator<< (Named<T, String>&& named) {
+    Read& operator<< (archive::Named<T, String>&& named) {
       return *this << named.variable;
+    }
+
+    template<typename T>
+    Read& operator<< (T val) {
+      return archive::serialize(*this, val);
     }
   };
 
@@ -122,8 +129,13 @@ private:
     Write& operator<< (unsigned long long& val) { return write(reinterpret_cast<char*>(&val), sizeof(val)); }
 
     template<typename T, typename String>
-    Write& operator<< (Named<T, String>&& named) {
+    Write& operator<< (archive::Named<T, String>&& named) {
       return *this << named.variable;
+    }
+
+    template<typename T>
+    Write& operator<< (T val) {
+      return archive::serialize(*this, val);
     }
   };
 
