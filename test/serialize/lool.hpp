@@ -15,10 +15,15 @@ struct Lool {
   void setD(int16_t val) { d = val; }
 };
 
+struct Lool2 {
+  Lool& l1;
+  Lool& l2;
+};
+
 namespace archive {
 
 template<typename Archive>
-Archive& operator<<(Archive& ar, Lool& lool) {
+Archive& serialize(Archive& ar, Lool& lool) {
   ar << lool.a;
 
   ar << make_named("b", lool.b);
@@ -28,6 +33,16 @@ Archive& operator<<(Archive& ar, Lool& lool) {
   decltype(lool.d) d = lool.getD();
   ar << make_named("d", d);
   lool.setD(d);
+
+  return ar;
+};
+
+
+template<typename Archive>
+Archive& serialize(Archive& ar, Lool2& lool2) {
+  ar << lool2.l1;
+
+  ar << make_named("test", lool2.l2);
 
   return ar;
 };

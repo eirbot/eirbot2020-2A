@@ -4,6 +4,7 @@
 #include <iostream>
 
 extern void test(void);
+extern void test2(void);
 
 using namespace std;
 
@@ -76,10 +77,13 @@ struct MyCmd {
     if (string(cmdname) == string("echo")) {
       return Main(this, [](void*obj, int argc, char* argv[]) -> int { return static_cast<MyCmd*>(obj)->echo(argc, argv); });
     }
-    if (string(cmdname) == string("test")) {
+    else if (string(cmdname) == string("test")) {
       return Main(nullptr, [](void*, int , char* []) -> int { test(); return 0; });
     }
-    if (string(cmdname) == string("exit")) {
+    else if (string(cmdname) == string("test2")) {
+      return Main(nullptr, [](void*, int , char* []) -> int { test2(); return 0; });
+    }
+    else if (string(cmdname) == string("exit")) {
       return Main(this, [](void* obj, int , char* []) -> int { static_cast<MyCmd*>(obj)->exit(); return 0; });
     }
     else {
@@ -95,6 +99,8 @@ int main()
   MyStdOut mystdout;
   MyCmd mycmd;
   Shell<MyStdIn, MyStdOut, MyCmd> shell(mystdin, mystdout, mycmd);
+
+  test2();
 
   while(mycmd.run_shell) {
     shell.update();
