@@ -1,16 +1,16 @@
-#ifndef SIMPLE_DYNAMIC_RANDOM_ACCESS_STREAM_HPP
-#define SIMPLE_DYNAMIC_RANDOM_ACCESS_STREAM_HPP
+#ifndef DYNAMIC_ARCHIVE_RANDOM_ACCESS_STREAM_HPP
+#define DYNAMIC_ARCHIVE_RANDOM_ACCESS_STREAM_HPP
 
 #include <cstring>
 #include <algorithm>
 
 #include "archive.hpp"
 
-namespace simple_dynamic_random_access_stream {
+namespace dynamic_archive_random_access_stream {
 
 using namespace archive;
 
-class SimpleDynamicRandomAccessStream {
+class DynamicArchiveRandomAccessStream {
 private:
   struct Size {
     unsigned int size = 0;
@@ -143,7 +143,7 @@ private:
 
 public:
   template<typename T>
-  SimpleDynamicRandomAccessStream(T& val) {
+  DynamicArchiveRandomAccessStream(T& val) {
     read_func = [](Read& r, void* ptr) -> Read& {
       return r << *static_cast<T*>(ptr);
     };
@@ -182,6 +182,6 @@ public:
 
 }
 
-using simple_dynamic_random_access_stream::SimpleDynamicRandomAccessStream;
+using dynamic_archive_random_access_stream::DynamicArchiveRandomAccessStream;
 
-#endif // SIMPLE_DYNAMIC_RANDOM_ACCESS_STREAM_HPP
+#endif // DYNAMIC_ARCHIVE_RANDOM_ACCESS_STREAM_HPP

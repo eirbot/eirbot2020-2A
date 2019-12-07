@@ -8,6 +8,6 @@ SOURCES += main.cpp \
 
 HEADERS += \
 	archive.hpp \
+	dynamic_archive_random_access_stream.hpp \
 	lool.hpp \
-	shell.hpp \
-	simple_dynamic_random_access_stream.hpp
+	shell.hpp
