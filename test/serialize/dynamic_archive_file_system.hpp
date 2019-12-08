@@ -6,9 +6,6 @@
 
 #include "archive.hpp"
 
-#include <iostream>
-using namespace std;
-
 namespace dynamic_archive_file_system {
 
 class DynamicArchiveFileSystem {
@@ -64,12 +61,8 @@ private:
         local_count++;
       }
 
-      //cout << name << endl;
-
       if(pos){
         pos--;
-
-        ///cout << "DEC!!" << pos << endl;
 
         if(pos) {
           len = prev_len;

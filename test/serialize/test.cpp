@@ -1,6 +1,6 @@
-#include "lool.hpp"
 #include "dynamic_archive_random_access_stream.hpp"
 #include "dynamic_archive_file_system.hpp"
+#include "lool.hpp"
 
 #include <iostream>
 
@@ -68,5 +68,4 @@ void test2(void)
   a.b = 42;
   a.c = 0xFF00FF00;
   a.d = 69;
-
 }
