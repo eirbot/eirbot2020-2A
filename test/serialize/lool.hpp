@@ -23,7 +23,7 @@ struct Lool2 {
 namespace archive {
 
 template<typename Archive>
-Archive& serialize(Archive& ar, Lool& lool) {
+Archive& operator>>(Lool& lool, Archive& ar) {
   ar << lool.a;
 
   ar << make_named("b", lool.b);
@@ -37,9 +37,8 @@ Archive& serialize(Archive& ar, Lool& lool) {
   return ar;
 };
 
-
 template<typename Archive>
-Archive& serialize(Archive& ar, Lool2& lool2) {
+Archive& operator>>(Lool2& lool2, Archive& ar) {
   ar << lool2.l1;
 
   ar << make_named("test", lool2.l2);
