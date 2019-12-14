@@ -13,6 +13,8 @@
 #include <strat.hpp>
 #include <bluetooth_controller.hpp>
 
+#include <shell.hpp>
+
 #ifdef DEBUG
 #include <debug.hpp>
 #include <testers.hpp>
@@ -50,6 +52,79 @@ Odometry odometry(&qei_l, &qei_r);
 Navigator navigator(&odometry, &speed_block);
 Strat strat(&navigator, &odometry, &seg, &rgb);
 
+struct ShellSerialIn {
+	Serial& ser;
+	ShellSerialIn(Serial& ser) : ser(ser) {}
+	unsigned int readable(void) {
+		return ser.readable() ? 1 : 0;
+	}
+
+	char get(void) {
+		return ser.getc();
+	}
+};
+
+struct ShellSerialOut {
+	Serial& ser;
+	ShellSerialOut(Serial& ser) : ser(ser) {}
+	void put(char c) {
+		ser.putc(c);
+	}
+};
+
+struct ShellCmd {
+  using Func = int (*)(void* obj, int argc, char* argv[]);
+
+  bool run_shell = true;
+
+  struct Main {
+    void* obj;
+    Func func;
+
+    Main(void* obj, Func func) : obj(obj), func(func) {}
+
+    int operator()(int argc, char* argv[]) {
+      return func(obj, argc, argv);
+    }
+
+    operator bool(void) {
+      return func;
+    }
+  };
+
+  int echo(int argc, char* argv[]) {
+
+    for (int i = 1 ; i < argc ; i++) {
+      ser.printf("%d ", (int)argv[i]);
+    }
+    ser.printf("\n");
+
+    return 0;
+  }
+
+  void exit(void) {
+    run_shell = false;
+  }
+
+  Main operator[] (char* cmdname) {
+    if (string(cmdname) == string("echo")) {
+      return Main(this, [](void*obj, int argc, char* argv[]) -> int { return static_cast<ShellCmd*>(obj)->echo(argc, argv); });
+    }
+    else if (string(cmdname) == string("exit")) {
+      return Main(this, [](void* obj, int , char* []) -> int { static_cast<ShellCmd*>(obj)->exit(); return 0; });
+    }
+    else {
+      ser.printf("unknown\n");
+      return Main(nullptr, nullptr);
+    }
+  }
+};
+
+ShellSerialIn ssi(ser);
+ShellSerialOut sso(ser);
+ShellCmd scmd;
+
+Shell<ShellSerialIn, ShellSerialOut, ShellCmd> shell(ssi, sso, scmd);
 
 int main()
 {
@@ -61,6 +136,11 @@ int main()
 	initPump(PUMP_PIN, EVALVE_PIN);
 	initGp2(GP2_FL, GP2_FC, GP2_FR, GP2_RL, GP2_RC, GP2_RR);
 	wait(3.0f);
+
+	while(scmd.run_shell) {
+		shell.update();
+	}
+
 #ifdef DEBUG
 	ser.baud(115200);
 	ser.printf("\r\nstart\r\n");
