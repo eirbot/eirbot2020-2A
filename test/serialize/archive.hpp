@@ -20,7 +20,7 @@ private:
   Archive& ar;
 
 public:
-  serialize(Archive& ar, T var) : ar(ar) {
+  serialize(Archive& ar, T& var) : ar(ar) {
     var >> ar;
   }
 

@@ -64,8 +64,33 @@ void test2(void)
     cout << "[" << i << "] = " << buff << endl;
   }
 
+  cout << "/test/a => " << dafs.getId("/test/b") << endl;
+  cout << "unknownpath => " << dafs.getId("unknownpath") << endl;
+
   a.a = 666;
   a.b = 42;
   a.c = 0xFF00FF00;
   a.d = 69;
+
+  for(unsigned int i = 0 ; i < dafs.size() ; i++) {
+    dafs.getPath(i, buff);
+    auto f = dafs.open(buff);
+
+    cout << buff << " : ";
+    f.read(buff, 255);
+    cout << buff << endl;
+  }
+
+  auto f = dafs.open("/test/d");
+  f.write("3000", sizeof("3000"));
+
+  for(unsigned int i = 0 ; i < dafs.size() ; i++) {
+    dafs.getPath(i, buff);
+    auto f = dafs.open(buff);
+
+    cout << buff << " : ";
+    f.read(buff, 255);
+    cout << buff << endl;
+  }
+
 }
