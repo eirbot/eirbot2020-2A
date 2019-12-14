@@ -107,10 +107,10 @@ struct ShellCmd {
   }
 
   Main operator[] (char* cmdname) {
-    if (string(cmdname) == string("echo")) {
+    if (std::strcmp(cmdname, "echo") == 0) {
       return Main(this, [](void*obj, int argc, char* argv[]) -> int { return static_cast<ShellCmd*>(obj)->echo(argc, argv); });
     }
-    else if (string(cmdname) == string("exit")) {
+    else if (std::strcmp(cmdname, "exit") == 0) {
       return Main(this, [](void* obj, int , char* []) -> int { static_cast<ShellCmd*>(obj)->exit(); return 0; });
     }
     else {
@@ -137,14 +137,14 @@ int main()
 	initGp2(GP2_FL, GP2_FC, GP2_FR, GP2_RL, GP2_RC, GP2_RR);
 	wait(3.0f);
 
+	ser.baud(115200);
+	ser.printf("\r\nstart\r\n");
+	ser.printf("error code: %d\r\n", err);
+
 	while(scmd.run_shell) {
 		shell.update();
 	}
 
-#ifdef DEBUG
-	ser.baud(115200);
-	ser.printf("\r\nstart\r\n");
-	ser.printf("error code: %d\r\n", err);
 #ifdef LENGTH_CALIB
 	length_calibration(&ser, &qei_l, &qei_r);
 #endif
@@ -177,7 +177,6 @@ int main()
 #endif
 #ifdef REAL
 	test_real(&ser, &strat, &odometry, &side, &waiting_key);
-#endif
 #endif
 	strat.reset();
 	while (1);
