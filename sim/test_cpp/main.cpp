@@ -1,6 +1,7 @@
 #include <string.h>
 #include <iostream>
 #include <iomanip>
+#include <cmath>
 using namespace std;
 
 extern "C" {
@@ -20,6 +21,24 @@ int main(void)
 
   simxInt left_encoder_handle = -1;
   simxInt right_encoder_handle = -1;
+
+  const char* gp2_names[] = {
+    "gp2_1",
+    "gp2_2",
+    "gp2_3",
+    "gp2_4",
+    "gp2_5",
+    "gp2_6",
+    "gp2_7",
+    "gp2_8",
+    "gp2_9",
+    "gp2_10",
+    "gp2_11",
+    "gp2_12",
+  };
+
+  simxInt gp2[sizeof(gp2_names)/sizeof(gp2_names[0])] = {};
+  simxFloat gp2_pos[sizeof(gp2_names)/sizeof(gp2_names[0])][3] = {};
 
   if(simxGetObjectHandle(client_id, "left_motor_joint", &left_motor_handle, simx_opmode_oneshot_wait) != simx_return_ok) {
     cerr << "ERROR : Could not find left_motor_joint" << endl;
@@ -41,20 +60,34 @@ int main(void)
     return -1;
   }
 
-  {
-    simxFloat v = 0;
-    cout << "Enter motors speed : " << endl;
-    cin >> v;
-    simxSetJointTargetVelocity(client_id, left_motor_handle, v*0.01745322, simx_opmode_oneshot_wait);
-    simxSetJointTargetVelocity(client_id, right_motor_handle, v*0.01745322, simx_opmode_oneshot_wait);
+  for(int i = 0 ; i < sizeof(gp2)/sizeof(gp2[0]) ; i++) {
+    if(simxGetObjectHandle(client_id, gp2_names[i], &gp2[i], simx_opmode_oneshot_wait) != simx_return_ok) {
+      cerr << "ERROR : Could not find " << gp2_names[i] << endl;
+      return -1;
+    }
   }
 
-  for(int i = 0 ; i < 10 ; i++) {
-    simxFloat lp = 0;
-    simxFloat rp = 0;
-    simxGetJointPosition(client_id, left_encoder_handle, &lp, simx_opmode_oneshot_wait);
-    simxGetJointPosition(client_id, right_encoder_handle, &rp, simx_opmode_oneshot_wait);
-    cout << left << std::setw(10) << lp << " ; " << std::setw(10) << rp << endl;
+  for(int i = 0 ; i < sizeof(gp2)/sizeof(gp2[0]) ; i++) {
+    simxReadProximitySensor(client_id, gp2[i], NULL, NULL, NULL, NULL, simx_opmode_streaming);
+    simxGetObjectPosition (client_id, gp2[i], -1, gp2_pos[i], simx_opmode_streaming);
+  }
+
+  while(1) {
+    simxFloat detect[3] = {};
+    simxUChar state = 0;
+    for(int i = 0 ; i < sizeof(gp2)/sizeof(gp2[0]) ; i++) {
+      simxReadProximitySensor(client_id, gp2[i], &state, detect, NULL, NULL, simx_opmode_buffer);
+      simxGetObjectPosition (client_id, gp2[i], -1, gp2_pos[i], simx_opmode_buffer);
+      if (state) {
+        double dist = sqrt(detect[0]*detect[0]+detect[1]*detect[1]+detect[2]*detect[2]);
+        int d = dist * 1000;
+        cout << right << setw(4) << d << ";";
+      }
+      else {
+        cout << "NONE;";
+      }
+    }
+    cout << endl;
   }
 
   simxFinish(client_id);
