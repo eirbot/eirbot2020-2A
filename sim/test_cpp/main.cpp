@@ -35,6 +35,18 @@ int main(void)
     "gp2_10",
     "gp2_11",
     "gp2_12",
+    "gp2_13",
+    "gp2_14",
+    "gp2_15",
+    "gp2_16",
+    "gp2_17",
+    "gp2_18",
+    "gp2_19",
+    "gp2_20",
+    "gp2_21",
+    "gp2_22",
+    "gp2_23",
+    "gp2_24",
   };
 
   simxInt gp2[sizeof(gp2_names)/sizeof(gp2_names[0])] = {};
