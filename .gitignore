@@ -38,3 +38,6 @@ __pycache__/
 build-*
 *.user
 *.user.*
+
+# Mecanique 
+*.lck
