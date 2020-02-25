@@ -22,9 +22,10 @@ private:
 
     template<typename... NoTypeDataPack, typename NoTypeData>
     void build_data_frame_recursive(uint8_t *buffer, uint16_t index, NoTypeData arg, NoTypeDataPack... args);
-    void build_data_frame_recursive(uint8_t *buffer, uint16_t index);
+    void build_data_frame_recursive(uint8_t *buffer, uint16_t index); //leaf
     template<typename... NoTypeDataPack>
     void generic_send(COMMAND cmd, NoTypeDataPack... args);
+    void decode(); // leaf
 public:
     Ctfcom(PinName Tx, PinName Rx, int baud);
     ~Ctfcom();
@@ -32,9 +33,10 @@ public:
     void send_pos(float x, float y, float angle);
     void it_handler(void);
     uint8_t get_recived_data();
-    uint8_t get_len_recived_data();
-    template<typename... NoTypeDataPack>
-    void decode(NoTypeDataPack * ...args);
+    size_t get_len_recived_data();
+    template<typename... NoTypeDataPack, typename NoTypeData>
+    void decode(NoTypeData *arg, NoTypeDataPack * ...args);
+
 };
 
 template<typename... NoTypeDataPack>
@@ -59,6 +61,17 @@ void Ctfcom::build_data_frame_recursive(uint8_t *buffer, uint16_t index, NoTypeD
     build_data_frame_recursive(buffer, index, args...);
 }
 
+ 
+template<typename... NoTypeDataPack, typename NoTypeData>
+void Ctfcom::decode(NoTypeData *arg, NoTypeDataPack * ...args){
+    uint8_t arg_size = sizeof(*arg);
+    while (get_len_recived_data() < arg_size){}
+    for (uint8_t i = 0; i < arg_size; i++)
+    {
+        arg[i] = (uint8_t)get_recived_data();
+    }
+    decode(args...);
+}
 
 
 #endif

@@ -33,11 +33,16 @@ uint8_t Ctfcom::get_recived_data(){
     list_buffer.pop_front();
     return b;
 }
-uint8_t Ctfcom::get_len_recived_data(){
+size_t Ctfcom::get_len_recived_data(){
     return list_buffer.size();
 }
 
 void Ctfcom::build_data_frame_recursive(uint8_t *buffer, uint16_t index){
+    // C'est une feuille du template on touche pas !
+    return;
+}
+
+void Ctfcom::decode(){
     // C'est une feuille du template on touche pas !
     return;
 }

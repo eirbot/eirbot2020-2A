@@ -62,9 +62,12 @@ FEATURES = [get_pos, set_pos, goto, stop, panic]
 
 def main():
     s = serial.Serial(SERIAL_PORT,baudrate=115200)
-    s.write(ask(get_pos))
-    pay = ask(set_pos, 0.1, 0.3, 0.4)
-    res = s.read(13)
-    print(parse(res))
+    sending = 0
+    if sending:
+        s.write(ask(get_pos))
+        res = s.read(13)
+        print(parse(res))
+    else:
+        s.write(ask(set_pos, 0.1, 0.3, 0.4))
 
 main()
