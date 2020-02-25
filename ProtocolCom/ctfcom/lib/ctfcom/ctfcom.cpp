@@ -23,16 +23,7 @@ void Ctfcom::send(const uint8_t *data, uint32_t len){
 
 
 void Ctfcom::send_pos(float x, float y, float angle){
-    // int len = sizeof(x) + sizeof(y)+ sizeof(angle) +1;
-    // uint8_t *buffer = (uint8_t *)malloc(len);
-    const int len = 13;
-    uint8_t buffer[len];
-    buffer[0] = get_pos;
-    float_to_table(x, buffer + 1);
-    float_to_table(y, buffer + 1 + 4);
-    float_to_table(angle, buffer + 1 + 8);
-    send(buffer, len);
-    // free(buffer);
+    generic_send(get_pos, x, y, angle);
 }
 
 void Ctfcom::float_to_table(float f, uint8_t *buff){
