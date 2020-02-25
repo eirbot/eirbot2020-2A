@@ -12,13 +12,15 @@ Ctfcom::~Ctfcom()
 
 }
 
-void Ctfcom::send(const uint8_t *data, int32_t len){
+void Ctfcom::send(const uint8_t *data, uint32_t len){
     for (size_t i = 0; i < len; i++)
     {
         _com.putc(data[i]);
     }
     
 }
+
+
 
 void Ctfcom::send_pos(float x, float y, float angle){
     // int len = sizeof(x) + sizeof(y)+ sizeof(angle) +1;
@@ -41,15 +43,19 @@ void Ctfcom::float_to_table(float f, uint8_t *buff){
 }
 
 void Ctfcom::it_handler(void){
-    
     list_buffer.push_back(_com.getc());
 }
 
 uint8_t Ctfcom::get_recived_data(){
-    int8_t b = list_buffer.front();
+    uint8_t b = list_buffer.front();
     list_buffer.pop_front();
     return b;
 }
 uint8_t Ctfcom::get_len_recived_data(){
     return list_buffer.size();
+}
+
+void Ctfcom::build_data_frame_recursive(uint8_t *buffer, uint16_t index){
+    // C'est une feuille du template on touche pas !
+    return;
 }

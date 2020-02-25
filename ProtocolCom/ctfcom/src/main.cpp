@@ -13,7 +13,8 @@ int main() {
     {
       if (com.get_recived_data() == get_pos)
       {
-        com.send_pos(0.2,0.3,0.4);
+        //com.send_pos(0.2,0.3,0.4);
+        com.generic_send(get_pos, 3, 0.2, 0.3, 0.4);
       }
       
     }
