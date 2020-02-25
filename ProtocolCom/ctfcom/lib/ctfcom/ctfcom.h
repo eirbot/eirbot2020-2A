@@ -33,6 +33,8 @@ public:
     void it_handler(void);
     uint8_t get_recived_data();
     uint8_t get_len_recived_data();
+    template<typename... NoTypeDataPack>
+    void decode(NoTypeDataPack * ...args);
 };
 
 template<typename... NoTypeDataPack>

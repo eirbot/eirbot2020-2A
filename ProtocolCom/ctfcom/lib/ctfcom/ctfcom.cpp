@@ -20,17 +20,8 @@ void Ctfcom::send(const uint8_t *data, uint32_t len){
     
 }
 
-
-
 void Ctfcom::send_pos(float x, float y, float angle){
     generic_send(get_pos, x, y, angle);
-}
-
-void Ctfcom::float_to_table(float f, uint8_t *buff){
-    buff[0] =((uint8_t *)&f)[0];
-    buff[1] =((uint8_t *)&f)[1];
-    buff[2] =((uint8_t *)&f)[2];
-    buff[3] =((uint8_t *)&f)[3];
 }
 
 void Ctfcom::it_handler(void){
