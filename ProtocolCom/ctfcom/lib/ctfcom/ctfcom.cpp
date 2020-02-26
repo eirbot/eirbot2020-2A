@@ -5,6 +5,8 @@ Ctfcom::Ctfcom(PinName Tx, PinName Rx, int baud) : _com(Tx,Rx,baud)
 {
 // Setup a serial interrupt function to receive data
     _com.attach(callback(this, &Ctfcom::it_handler), SerialBase::RxIrq);
+    read_lock = 0;
+    write_lock = 0;
 }
 
 Ctfcom::~Ctfcom()
@@ -45,4 +47,22 @@ void Ctfcom::build_data_frame_recursive(uint8_t *buffer, uint16_t index){
 void Ctfcom::decode(){
     // C'est une feuille du template on touche pas !
     return;
+}
+
+void Ctfcom::lock_write_ressource(void){
+    while (write_lock){}
+    write_lock = 1;
+}
+
+void Ctfcom::lock_read_ressource(void){
+    while (read_lock){}
+    read_lock = 1;
+}
+
+void Ctfcom::unlock_write_ressource(void){
+    write_lock = 1;
+}
+
+void Ctfcom::unlock_read_ressource(void){
+    read_lock = 1;
 }

@@ -9,7 +9,9 @@ enum COMMAND{
     go_to,
     stop,
     panic,
-    get_gp2
+    get_gp2,
+    ack = 254,
+    nack = 255
 };
 
 class Ctfcom
@@ -23,9 +25,14 @@ private:
     template<typename... NoTypeDataPack, typename NoTypeData>
     void build_data_frame_recursive(uint8_t *buffer, uint16_t index, NoTypeData arg, NoTypeDataPack... args);
     void build_data_frame_recursive(uint8_t *buffer, uint16_t index); //leaf
-    template<typename... NoTypeDataPack>
-    void generic_send(COMMAND cmd, NoTypeDataPack... args);
     void decode(); // leaf
+    uint8_t read_lock;
+    uint8_t write_lock;
+    void Ctfcom::lock_write_ressource(void);
+    void Ctfcom::lock_read_ressource(void);
+    void Ctfcom::unlock_write_ressource(void);
+    void Ctfcom::unlock_read_ressource(void);
+
 public:
     Ctfcom(PinName Tx, PinName Rx, int baud);
     ~Ctfcom();
@@ -36,6 +43,8 @@ public:
     size_t get_len_recived_data();
     template<typename... NoTypeDataPack, typename NoTypeData>
     void decode(NoTypeData *arg, NoTypeDataPack * ...args);
+    template<typename... NoTypeDataPack>
+    void generic_send(COMMAND cmd, NoTypeDataPack... args);
 
 };
 
