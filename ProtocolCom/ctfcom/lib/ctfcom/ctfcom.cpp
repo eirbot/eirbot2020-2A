@@ -15,11 +15,12 @@ Ctfcom::~Ctfcom()
 }
 
 void Ctfcom::send(const uint8_t *data, uint32_t len){
+    lock_write_ressource();
     for (size_t i = 0; i < len; i++)
     {
         _com.putc(data[i]);
     }
-    
+    unlock_write_ressource();
 }
 
 void Ctfcom::send_pos(float x, float y, float angle){
