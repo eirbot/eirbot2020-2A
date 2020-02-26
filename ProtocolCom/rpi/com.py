@@ -32,9 +32,9 @@ def ask(feature, *args):
     payload = feature.identifier.to_bytes(1, "little")
     for arg in args:
         if isinstance(arg, int):
-            payload += struct.pack("!i", arg)
+            payload += struct.pack("i", arg)
         elif isinstance(arg, float):
-            payload += struct.pack("!f", arg)
+            payload += struct.pack("f", arg)
     logging.debug("%s: Sending %s", feature.name, payload)
     return payload
 

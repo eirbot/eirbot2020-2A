@@ -68,7 +68,7 @@ void Ctfcom::decode(NoTypeData *arg, NoTypeDataPack * ...args){
     while (get_len_recived_data() < arg_size){}
     for (uint8_t i = 0; i < arg_size; i++)
     {
-        arg[i] = (uint8_t)get_recived_data();
+        ((uint8_t *)arg)[i] = get_recived_data();
     }
     decode(args...);
 }

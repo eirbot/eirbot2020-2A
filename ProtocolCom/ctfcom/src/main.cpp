@@ -24,6 +24,7 @@ int main() {
       {
         com.send_pos(0.2,0.3,0.4);
       }else if(recived_order == set_pos){
+        //while (com.get_len_recived_data() < 12){}
         com.decode(&x,&y,&angle);
       }
     }
