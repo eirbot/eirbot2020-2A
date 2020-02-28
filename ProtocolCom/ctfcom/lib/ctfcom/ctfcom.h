@@ -35,6 +35,7 @@ private:
     void unlock_write_ressource(void);
     void unlock_read_ressource(void);
 
+
 public:
     Ctfcom(PinName Tx, PinName Rx);
     Ctfcom(PinName Tx, PinName Rx, int baud);
@@ -50,6 +51,7 @@ public:
     void decode(NoTypeData *arg, NoTypeDataPack * ...args);
     template<typename... NoTypeDataPack>
     void generic_send(COMMAND cmd, NoTypeDataPack... args);
+    void generic_send(COMMAND cmd);
 
 };
 
