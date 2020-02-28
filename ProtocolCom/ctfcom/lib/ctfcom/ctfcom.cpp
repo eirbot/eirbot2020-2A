@@ -102,3 +102,7 @@ void Ctfcom::unlock_write_ressource(void){
 void Ctfcom::unlock_read_ressource(void){
     read_lock = 1;
 }
+
+void Ctfcom::generic_send(COMMAND cmd){
+    send((uint8_t *)&cmd,1);
+}
