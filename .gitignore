@@ -39,5 +39,7 @@ build-*
 *.user
 *.user.*
 
+*/.ccls-cache/
+
 # Mecanique 
 *.lck
