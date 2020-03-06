@@ -43,3 +43,5 @@ build-*
 
 # Mecanique 
 *.lck
+
+*.vscode/
