@@ -62,7 +62,7 @@ FEATURES = [get_pos, set_pos, goto, stop, panic]
 
 def main():
     s = serial.Serial(SERIAL_PORT,baudrate=115200)
-    sending = 0
+    sending = 1
     if sending:
         s.write(ask(get_pos))
         res = s.read(13)
