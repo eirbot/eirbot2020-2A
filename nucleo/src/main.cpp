@@ -19,18 +19,17 @@
 // #include <testers.hpp>
 #endif
 
-
 #ifdef DEBUG
 int err = NO_ERROR;
 #else
 int err = 0;
 #endif
 
-float coef_err_l[] = {0.01* 0.8659f, 0.01* -0.7513f, 0.01* -0.8629, 0.01* 0.7543};
+const float coef_k = 0.01f;
+float coef_err_l[] = {coef_k * 0.8659f, coef_k * -0.7513f, coef_k * -0.8629, coef_k * 0.7543};
 float coef_co_l[] = {1.0f, -0.9107f, -0.1491f, 0.05982f};
-float coef_err_r[] = {0.01* 0.8659f, 0.01* -0.7513f, 0.01* -0.8629, 0.01* 0.7543};
+float coef_err_r[] = {coef_k * 0.8659f, coef_k * -0.7513f, coef_k * -0.8629, coef_k * 0.7543};
 float coef_co_r[] = {1.0f, -0.9107f, -0.1491f, 0.05982f};
-
 
 DigitalOut led(LED2);
 DigitalIn side(SIDE_PIN);
@@ -49,57 +48,67 @@ LMD18200 motor_r(PWM_R, DIR_R, BREAK_R, DIR_FWD_R, PERIOD_PWM);
 SpeedBlock speed_block(&qei_l, &pid_l, &motor_l, &qei_r, &pid_r, &motor_r);
 Odometry odometry(&qei_l, &qei_r);
 Navigator navigator(&odometry, &speed_block);
-
-
-#ifndef SHELL
-Ctfcom com(SERIAL_TX, SERIAL_RX, 115200);
-Robot robot(&navigator, &odometry, &seg, &rgb, &com);
-#else
 Serial ser(USBTX, USBRX, 115200);
 
-struct ShellSerialIn {
-	Serial& ser;
-	ShellSerialIn(Serial& ser) : ser(ser) {}
-	unsigned int readable(void) {
-		return ser.readable() ? 1 : 0;
-	}
+#ifndef SHELL
+Ctfcom com(&ser);
+Robot robot(&navigator, &odometry, &seg, &rgb, &com);
+#else
 
-	char get(void) {
-		return ser.getc();
-	}
+struct ShellSerialIn
+{
+  Serial &ser;
+  ShellSerialIn(Serial &ser) : ser(ser) {}
+  unsigned int readable(void)
+  {
+    return ser.readable() ? 1 : 0;
+  }
+
+  char get(void)
+  {
+    return ser.getc();
+  }
 };
 
-struct ShellSerialOut {
-	Serial& ser;
-	ShellSerialOut(Serial& ser) : ser(ser) {}
-	void put(char c) {
-		ser.putc(c);
-	}
+struct ShellSerialOut
+{
+  Serial &ser;
+  ShellSerialOut(Serial &ser) : ser(ser) {}
+  void put(char c)
+  {
+    ser.putc(c);
+  }
 };
 
-struct ShellCmd {
-  using Func = int (*)(void* obj, int argc, char* argv[]);
+struct ShellCmd
+{
+  using Func = int (*)(void *obj, int argc, char *argv[]);
 
   bool run_shell = true;
 
-  struct Main {
-    void* obj;
+  struct Main
+  {
+    void *obj;
     Func func;
 
-    Main(void* obj, Func func) : obj(obj), func(func) {}
+    Main(void *obj, Func func) : obj(obj), func(func) {}
 
-    int operator()(int argc, char* argv[]) {
+    int operator()(int argc, char *argv[])
+    {
       return func(obj, argc, argv);
     }
 
-    operator bool(void) {
+    operator bool(void)
+    {
       return func;
     }
   };
 
-  int echo(int argc, char* argv[]) {
+  int echo(int argc, char *argv[])
+  {
 
-    for (int i = 1 ; i < argc ; i++) {
+    for (int i = 1; i < argc; i++)
+    {
       ser.printf("%d ", (int)argv[i]);
     }
     ser.printf("\n");
@@ -107,18 +116,23 @@ struct ShellCmd {
     return 0;
   }
 
-  void exit(void) {
+  void exit(void)
+  {
     run_shell = false;
   }
 
-  Main operator[] (char* cmdname) {
-    if (std::strcmp(cmdname, "echo") == 0) {
-      return Main(this, [](void*obj, int argc, char* argv[]) -> int { return static_cast<ShellCmd*>(obj)->echo(argc, argv); });
+  Main operator[](char *cmdname)
+  {
+    if (std::strcmp(cmdname, "echo") == 0)
+    {
+      return Main(this, [](void *obj, int argc, char *argv[]) -> int { return static_cast<ShellCmd *>(obj)->echo(argc, argv); });
     }
-    else if (std::strcmp(cmdname, "exit") == 0) {
-      return Main(this, [](void* obj, int , char* []) -> int { static_cast<ShellCmd*>(obj)->exit(); return 0; });
+    else if (std::strcmp(cmdname, "exit") == 0)
+    {
+      return Main(this, [](void *obj, int, char *[]) -> int { static_cast<ShellCmd*>(obj)->exit(); return 0; });
     }
-    else {
+    else
+    {
       ser.printf("unknown\n");
       return Main(nullptr, nullptr);
     }
@@ -136,22 +150,23 @@ Shell<ShellSerialIn, ShellSerialOut, ShellCmd> shell(ssi, sso, scmd);
 int main()
 {
 #ifndef SHELL
-	robot.reset();
-	rgb.setColor(1, 1, 1);
-	led = 1;
-	servoTimerInit();
-	initGp2(GP2_FL, GP2_FC, GP2_FR, GP2_RL, GP2_RC, GP2_RR);
-	wait(3.0f);
-	robot.run();
+  robot.reset();
+  rgb.setColor(1, 1, 1);
+  led = 1;
+  servoTimerInit();
+  initGp2(GP2_FL, GP2_FC, GP2_FR, GP2_RL, GP2_RC, GP2_RR);
+  wait(3.0f);
+  robot.run();
 
 #else
-	ser.printf("\r\nstart\r\n");
-	ser.printf("error code: %d\r\n", err);
+  ser.printf("\r\nstart\r\n");
+  ser.printf("error code: %d\r\n", err);
 
-	while(scmd.run_shell) {
-		shell.update();
-	}
+  while (scmd.run_shell)
+  {
+    shell.update();
+  }
 #endif
-	robot.reset();
-	while (1);
+  robot.reset();
+  while (1);
 }
