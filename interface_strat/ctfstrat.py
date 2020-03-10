@@ -26,8 +26,8 @@ class StratApp(object):
             window_x, window_y = w_size
         board_size_x = int(window_x * 0.80)
         board_size_y = int(board_size_x * 9/16)
-        board_pos_x = (window_x-board_size_x)/2
-        board_pos_y = (window_y-board_size_y)/2
+        board_pos_x = int((window_x-board_size_x)/2)
+        board_pos_y = int((window_y-board_size_y)/2)
         self.board = pygame.transform.scale(self.raw_board, (board_size_x, board_size_y))
         self.fenetre.fill(BACKGROUND_COLOR)
         self.fenetre.blit(self.board, (board_pos_x, board_pos_y))
