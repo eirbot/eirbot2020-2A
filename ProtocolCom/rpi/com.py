@@ -14,8 +14,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class Com:
-    def __init__(self, serial_port):
+    def __init__(self, serial_port, protocol):
         self.serial = serial.Serial(serial_port, baudrate=115200)
+        self.protocol = protocol
 
     def ask(self, feature, *args):
         payload = feature.identifier.to_bytes(1, "little")
@@ -38,8 +39,8 @@ class Com:
 
     def parse(self, payload):
         feature_id = ord(payload[0])
-        if feature_id in range(len(FEATURES)):
-            handler = FEATURES[feature_id].handle
+        if feature_id in range(len(self.protocol.features)):
+            handler = self.protocol.features[feature_id].handle
             if handler:
                 handler(self.serial)
         else:
@@ -60,15 +61,38 @@ class Feature:
 
 
 class Protocol:
-    def __init__(self):
-        self.features = {}
+    def __init__(self, com, robot, strat):
+        self.robot = robot
+        self.com = com
+        self.strat = strat
+        self.features = {
+            "get_pos": Feature("get_pos", 0, self.on_get_pos),
+            "set_pos": Feature("set_pos", 1, None),
+            "goto": Feature("goto", 2, None),
+            "stop": Feature("stop", 3, None),
+            "panic": Feature("panic", 4, None),
+            "get_gp2": Feature("get_gp2", 5, self.on_get_gp2),
+            "ping": Feature("ping", 6, self.on_get_pos),
+            "arrival": Feature("arrival", 7, self.on_arrival),
+        }
 
-    def add_feature(self, feature):
-        self.features[feature.name] = feature
+    def on_get_pos(self):
+        logging.debug("robot:on_get_pos: reading 12 bytes")
+        pos = self.com.serial.read(12)
+        x, y, theta = struct.unpack("fff", pos)
+        logging.debug("robot:on_get_pos:(x=%s, y=%s, t=%s)", x, y, theta)
+        self.robot.x = x
+        self.robot.y = y
+        self.robot.theta = theta
 
-    def add_features(self, features):
-        for feature in features:
-            self.add_feature(feature)
+    def on_get_gp2(self):
+        logging.debug("protocol:on_get_gp2: reading 12 bytes")
+        pos = self.com.serial.read(12)
+        self.robot.gp2s = struct.unpack("fff", pos)
+        logging.debug("protocol:on_get_gp2:(%s)", self.gp2)
+
+    def on_arrival(self):
+        self.strat.next()
 
 
 def main():

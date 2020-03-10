@@ -3,6 +3,7 @@
 import threading as th
 from com import Com, Protocol
 from robot import Robot
+from strat import Strat
 
 
 def init_com():
@@ -14,12 +15,14 @@ def init_com():
 
 
 def main():
-    # Initialise communitation with the nucleo
+    # Initialise les éléments
     com = init_com()
-    # Initialise communitation with the nucleo
-    protocol = Protocol()
-    # Initialise robot object
-    robot = Robot(com, protocol)
+    robot = Robot()
+    strat = Strat(robot)
+    protocol = Protocol(com, robot, strat)
+    robot.protocol = protocol
+
+    strat.start()
 
 
 if __name__ == "__main__":
