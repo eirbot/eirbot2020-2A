@@ -3,6 +3,8 @@ from pygame.locals import *
 import numpy as np
 import os
 from pathlib import Path
+from pathfinding import Board
+
 
 BACKGROUND_COLOR = (33,33,33)
 class StratApp(object):
@@ -15,11 +17,15 @@ class StratApp(object):
         self.raw_board = pygame.image.load(file).convert()
         self.board = None
         self.update_board()
+        self.path_board = Board()
 
-    def update_board(self):
-        window_x, window_y = pygame.display.get_surface().get_size()
+    def update_board(self, w_size=None):
+        if w_size is None:
+            window_x, window_y = pygame.display.get_surface().get_size()
+        else:
+            window_x, window_y = w_size
         board_size_x = int(window_x * 0.80)
-        board_size_y = int(window_y * 0.80)
+        board_size_y = int(board_size_x * 9/16)
         board_pos_x = (window_x-board_size_x)/2
         board_pos_y = (window_y-board_size_y)/2
         self.board = pygame.transform.scale(self.raw_board, (board_size_x, board_size_y))
@@ -32,7 +38,7 @@ class StratApp(object):
                 if event.type == QUIT or event.type == K_ESCAPE:     #Si un de ces événements est de type QUIT
                     self.running = 0      #On arrête la boucle
                 if event.type == VIDEORESIZE:
-                    self.update_board()
+                    self.update_board(event.size)
             pygame.display.flip()
 
 if __name__ == "__main__":
