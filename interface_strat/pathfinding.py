@@ -1,5 +1,5 @@
 import numpy as np
-
+import time
 class Board():
     POINT = 0
     
@@ -47,27 +47,26 @@ def astar(maze, start, end):
     start_node.g = start_node.h = start_node.f = 0
     end_node = Node(None, end)
     end_node.g = end_node.h = end_node.f = 0
-
+    len_board_x, len_board_y = maze.size()
+    neighbours = [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)] # Adjacent squares
     # Initialize both open and closed list
-    open_list = []
+    possible_path = []
     closed_list = []
 
     # Add the start node
-    open_list.append(start_node)
+    possible_path.append(start_node)
 
     # Loop until you find the end
-    while len(open_list) > 0:
-
-        # Get the current node
-        current_node = open_list[0]
+    while len(possible_path) > 0:
+        current_node = possible_path[0]
         current_index = 0
-        for index, item in enumerate(open_list):
+        for index, item in enumerate(possible_path):
             if item.f < current_node.f:
                 current_node = item
                 current_index = index
 
         # Pop current off open list, add to closed list
-        open_list.pop(current_index)
+        possible_path.pop(current_index)
         closed_list.append(current_node)
 
         # Found the goal
@@ -81,19 +80,18 @@ def astar(maze, start, end):
 
         # Generate children
         children = []
-        for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]: # Adjacent squares
+        for new_position in neighbours: # Adjacent squares
 
             # Get node position
             node_position = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
 
-            len_board_x, len_board_y = maze.size()
             # Make sure within range
 
             if node_position[0] > (len_board_x - 1) or node_position[0] < 0 or node_position[1] > (len_board_y -1) or node_position[1] < 0:
                 continue
 
             # Make sure walkable terrain
-            if maze[node_position[0],node_position[1]] != 0:
+            if maze[node_position[0], node_position[1]] != 0:
                 continue
 
             # Create new node
@@ -116,12 +114,13 @@ def astar(maze, start, end):
             child.f = child.g + child.h
 
             # Child is already in the open list
-            for open_node in open_list:
+            for open_node in possible_path:
                 if child == open_node and child.g > open_node.g:
                     continue
 
             # Add the child to the open list
-            open_list.append(child)
+            possible_path.append(child)
+    return None
 
 
 def main():
@@ -130,9 +129,9 @@ def main():
 
     start = (0, 0)
     end = (100, 600)
-
+    p_time = time.time()
     path = astar(maze, start, end)
-    print(path)
+    print(time.time()-p_time)
 
 
 if __name__ == '__main__':
