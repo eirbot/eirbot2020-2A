@@ -3,16 +3,32 @@
 from com import Feature
 import logging
 import struct
+from statemachine import StateMachine, State
 
 logging.basicConfig(level=logging.DEBUG)
 
 
-class Robot:
+class Robot(StateMachine):
     """
     The class that represent the robot.
     The robot has the following status:
-    MOVING, ARRIVED, BLOCKED
+    MOVIN, ARRIVED, BLOCKED
     """
+
+    ready = State("ready", initial=True)
+    waiting = State("waiting")
+    moving = State("move")
+    arrived = State("arrived")
+    blocked = State("blocked")
+
+    # Classic use
+    start = ready.to(waiting)
+    goto = waiting.to(moving)
+    arrive = moving.to(arrived)
+    wait = arrived.to(waiting)
+
+    # Errors and block
+    block = blocked.from_(waiting, arrived, moving)
 
     def __init__(self, com, protocol):
         self.x = None
@@ -21,6 +37,7 @@ class Robot:
         self.com = com
         self.protocol = protocol
         self.gp2s = None
+        self.parent_strategy = None
 
         # Adding features to the protocol
         features = [
@@ -35,11 +52,10 @@ class Robot:
 
         self.protocol.add_features(features)
 
-    def goto(self, x, y, theta):
+    def on_goto(self, x, y, theta):
         logging.debug("robot:goto:(x=%s, y=%s, t=%s)", x, y, theta)
         goto = self.protocol.features["goto"]
         self.com.ask(goto, x, y, theta)
-        self.status = "MOVING"
 
     def on_get_pos(self):
         logging.debug("robot:on_get_pos: reading 12 bytes")
