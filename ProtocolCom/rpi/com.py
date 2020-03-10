@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class Com:
-    def __init__(self, serial_port, protocol):
+    def __init__(self, serial_port, protocol=None):
         self.serial = serial.Serial(serial_port, baudrate=115200)
         self.protocol = protocol
 
@@ -61,10 +61,9 @@ class Feature:
 
 
 class Protocol:
-    def __init__(self, com, robot, strat):
+    def __init__(self, com, robot):
         self.robot = robot
         self.com = com
-        self.strat = strat
         self.features = {
             "get_pos": Feature("get_pos", 0, self.on_get_pos),
             "set_pos": Feature("set_pos", 1, None),
@@ -92,7 +91,7 @@ class Protocol:
         logging.debug("protocol:on_get_gp2:(%s)", self.gp2)
 
     def on_arrival(self):
-        self.strat.next()
+        self.robot.arrive()
 
 
 def main():

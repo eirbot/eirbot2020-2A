@@ -19,8 +19,12 @@ def main():
     com = init_com()
     robot = Robot()
     strat = Strat(robot)
-    protocol = Protocol(com, robot, strat)
+    protocol = Protocol(com, robot)
+
+    # Reverse bindings
     robot.protocol = protocol
+    robot.strat = strat
+    com.protocol = protocol
 
     strat.start()
 

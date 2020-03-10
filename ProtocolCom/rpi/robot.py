@@ -18,26 +18,32 @@ class Robot(StateMachine):
     ready = State("ready", initial=True)
     waiting = State("waiting")
     moving = State("move")
-    arrival = State("arrived")
+    arrived = State("arrived")
     blocked = State("blocked")
 
     # Classic use
     start = ready.to(waiting)
     goto = waiting.to(moving)
-    arrive = moving.to(arrival)
-    wait = arrival.to(waiting)
+    arrive = moving.to(arrived)
+    wait = arrived.to(waiting)
 
     # Errors and block
-    block = blocked.from_(waiting, arrival, moving)
+    block = blocked.from_(waiting, moving)
 
-    def __init__(self, protocol=None):
+    def __init__(self, strat=None, protocol=None):
+        super().__init__()
         self.x = None
         self.y = None
         self.theta = None
         self.gp2s = None
-        self.protocol = None
+        self.protocol = protocol
+        self.strat = strat
 
     def on_goto(self, x, y, theta):
         logging.debug("robot:goto:(x=%s, y=%s, t=%s)", x, y, theta)
         goto = self.protocol.features["goto"]
         self.protocol.com.ask(goto, x, y, theta)
+
+    def on_enter_arrived(self):
+        self.wait()
+        self.strat.next()
