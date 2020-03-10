@@ -39,7 +39,9 @@ class Com:
     def parse(self, payload):
         feature_id = ord(payload[0])
         if feature_id in range(len(FEATURES)):
-            FEATURES[feature_id].handle(self.serial)
+            handler = FEATURES[feature_id].handle
+            if handler:
+                handler(self.serial)
         else:
             logging.error("parse: id %d not recognized", feature_id)
 
@@ -57,36 +59,27 @@ class Feature:
         self.handle = handler
 
 
-def handle_get_pos(serial):
-    logging.debug("handle_get_pos: reading 12 bytes")
-    pos = serial.read(12)
-    x, y, t = struct.unpack("fff", pos)
-    print(f"x: {x}, y: {y}, t: {t}")
+class Protocol:
+    def __init__(self):
+        self.features = {}
+
+    def add_feature(self, feature):
+        self.features[feature.name] = feature
+
+    def add_features(self, features):
+        for feature in features:
+            self.add_feature(feature)
 
 
-def handle_void(serial):
-    pass
+def main():
+    import threading
+
+    c = Com(SERIAL_PORT)
+    com_thread = threading.Thread(target=c.loop)
+    com_thread.start()
+    ping = Feature("ping", 0, None)
+    c.ask(ping)
 
 
-def simple_handle_decode(decode_str):
-    """
-    Return a simple handler that return a tuple depending on `decode_str`
-    """
-    return lambda x: print(struct.unpack(decode_str, x))
-
-
-get_pos = Feature("get_pos", 0, handle_get_pos)
-set_pos = Feature("set_pos", 1, handle_get_pos)
-goto = Feature("goto", 2, handle_get_pos)
-stop = Feature("stop", 3, handle_get_pos)
-panic = Feature("panic", 4, handle_get_pos)
-
-FEATURES = [get_pos, set_pos, goto, stop, panic]
-
-
-import threading
-
-c = Com(SERIAL_PORT)
-com_thread = threading.Thread(target=c.loop)
-com_thread.start()
-c.ask(get_pos)
+if __name__ == "__main__":
+    main()
