@@ -11,14 +11,14 @@
 struct Node
 {
     Coordinates pos;
-    u_int32_t d_cost;
+    float g_cost;
     float h_cost;
+    float f_cost;
 };
 
 class castar
 {
 private:
-    Field field;
     template<typename T>
     T min(T val_1, T val_2);
     template<typename T>
@@ -29,7 +29,7 @@ private:
 public:
     castar();
     ~castar();
-    err_t find_path(Node start, Node end, std::vector<Node> *final_path);
+    err_t find_path(Node start, Node end, Field field, std::vector<Node> *final_path);
     err_t smooth_path(std::vector<Node> path, std::vector<Node> *final_path);
 };
 

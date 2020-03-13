@@ -10,17 +10,25 @@ using namespace std;
 int main(int argc, char const *argv[])
 {
     cout << "Launching !" << endl;
-    Field board = Field(200);
+    Field board = Field(20);
     Rectangle r;
-    r.pos.x = r.pos.y = 50;
-    r.dim.height = 20;
-    r.dim.width = 40;
+    r.pos.x = 20;
+    r.pos.y = 15;
+    r.dim.height = 60;
+    r.dim.width = 2;
     board.add_obsctacle(r);
-    Coordinates pos;
-    pos.x = pos.y = 0;
-    cout << board.is_possible(pos) << endl;
-    pos.x = 25;
-    pos.y = 31;
-    cout << board.is_possible(pos) << endl;
+    r.pos.x = 50;
+    r.pos.y = 20;
+    r.dim.height = 2;
+    r.dim.width = 20;
+    board.add_obsctacle(r);
+    
+    cout << "A* !" << endl;
+    castar astar = castar();
+    vector<Node> path;
+    Node start, end;
+    start.pos = {10,10};
+    end.pos = {60,10};
+    cout << astar.find_path(start,end, board , &path) << endl;
     return 0;
 }

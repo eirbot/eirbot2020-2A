@@ -41,12 +41,12 @@ bool Field::is_possible(Coordinates robot_pos){
 
     for (const Rectangle & obstacle : list_obsctacles)
     {
-        if(!intersect(robot, obstacle)){
-            return true;
+        if(intersect(robot, obstacle)){
+            return false;
         }
     }
     
-    return false;
+    return true;
 }
 
 bool Field::intersect(Circle circle, Rectangle rect){
@@ -70,6 +70,7 @@ bool Field::intersect(Circle circle, Rectangle rect){
 void Field::add_obsctacle(Rectangle obsctacle){
     list_obsctacles.push_back(obsctacle);
 }
+
 bool Field::delete_obstacle(Coordinates obstacle_position){
     for( std::vector<Rectangle>::iterator iter = list_obsctacles.begin(); iter != list_obsctacles.end(); ++iter )
     {
