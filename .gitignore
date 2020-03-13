@@ -9,6 +9,7 @@ __pycache__/
 *.lo
 *.o
 *.obj
+*.gcno
 
 # Precompiled Headers
 *.gch
@@ -45,3 +46,4 @@ build-*
 *.lck
 
 *.vscode/
+
