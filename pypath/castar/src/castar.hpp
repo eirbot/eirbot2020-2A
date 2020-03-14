@@ -11,6 +11,7 @@
 struct Node
 {
     Coordinates pos;
+    Coordinates came_from;
     float g_cost;
     float h_cost;
     float f_cost;
@@ -26,11 +27,12 @@ private:
     template<typename T>
     T limit(T val, T v_min, T v_max);
     float distance(Coordinates a, Coordinates b);
+    void reconstruct_path(std::vector<Node> *valid_paths , std::vector<Coordinates> *real_path, Node end);
 public:
     castar();
     ~castar();
-    err_t find_path(Node start, Node end, Field field, std::vector<Node> *final_path);
-    err_t smooth_path(std::vector<Node> path, std::vector<Node> *final_path);
+    err_t find_path(Node start, Node end, Field field, std::vector<Coordinates> *final_path);
+    err_t smooth_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path);
 };
 
 template<typename T>

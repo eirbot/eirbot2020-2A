@@ -11,7 +11,25 @@ castar::~castar()
 {
 }
 
-err_t castar::find_path(Node start, Node end, Field field, std::vector<Node> *final_path)
+void castar::reconstruct_path(std::vector<Node> *valid_paths, std::vector<Coordinates> *real_path, Node end)
+{
+
+    Node tmp = end;
+    while (tmp.pos.x != tmp.came_from.x or tmp.pos.y != tmp.came_from.y)
+    {
+        for (size_t i = 0; i < valid_paths->size(); i++)
+        {
+            if ((*valid_paths)[i].pos.x == tmp.came_from.x and (*valid_paths)[i].pos.y == tmp.came_from.y)
+            {
+                tmp = (*valid_paths)[i];
+                real_path->push_back(tmp.pos);
+                break;
+            }
+        }
+    }
+}
+
+err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinates> *final_path)
 {
 
     Size field_dim = field.get_dimensions();
@@ -31,6 +49,7 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Node> *fi
     std::vector<Node> open_list;
     std::vector<Node> close_list;
     start.g_cost = start.f_cost = start.h_cost = 0;
+    start.came_from = start.pos;
     open_list.push_back(start);
     Node current;
     Node tmp;
@@ -51,7 +70,9 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Node> *fi
         open_list.erase(open_list.begin() + x);
         if (current.pos.x == end.pos.x and current.pos.y == end.pos.y)
         {
-            printf("Done! \n");
+            printf("Path found! \n");
+            printf("op %ld , cl %ld\n", open_list.size(), close_list.size());
+            reconstruct_path(&close_list, final_path, current);
             return NO_ERROR;
         }
         for (int8_t x = -1; x <= 1; x++)
@@ -78,17 +99,25 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Node> *fi
                     continue;
                 }
 
+                int in_close = 0;
                 for (std::vector<Node>::iterator iter = close_list.begin(); iter != close_list.end(); ++iter)
                 {
                     if (iter->pos.x == new_node.pos.x and iter->pos.y == new_node.pos.y)
                     {
-                        continue;
+                        in_close = 1;
+                        break;
                     }
                 }
-
+                if (in_close)
+                {
+                    in_close = 1;
+                    continue;
+                }
+                
                 new_node.g_cost = current.g_cost + distance(new_node.pos, current.pos);
                 new_node.h_cost = distance(new_node.pos, end.pos);
                 new_node.f_cost = new_node.h_cost + new_node.g_cost;
+                new_node.came_from = current.pos;
 
                 int replaced = 0;
                 int seen = 0;
@@ -98,7 +127,7 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Node> *fi
                     if (iter->pos.x == new_node.pos.x and iter->pos.y == new_node.pos.y)
                     {
                         seen = 1;
-                        if (iter->f_cost < new_node.f_cost)
+                        if (iter->f_cost > new_node.f_cost)
                         {
                             iter->f_cost = new_node.f_cost;
                             iter->g_cost = new_node.g_cost;
@@ -125,7 +154,7 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Node> *fi
     return ERR_NO_PATH;
 }
 
-err_t castar::smooth_path(std::vector<Node> path, std::vector<Node> *final_path)
+err_t castar::smooth_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path)
 {
     return NO_ERROR;
 }
