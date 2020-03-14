@@ -70,8 +70,6 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
         open_list.erase(open_list.begin() + x);
         if (current.pos.x == end.pos.x and current.pos.y == end.pos.y)
         {
-            printf("Path found! \n");
-            printf("op %ld , cl %ld\n", open_list.size(), close_list.size());
             reconstruct_path(&close_list, final_path, current);
             return NO_ERROR;
         }
@@ -121,7 +119,7 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
 
                 int replaced = 0;
                 int seen = 0;
-                // Si node deja connue mais avec un poid plus faible alors on actualise le cout
+                // Si node deja connue mais avec un poid plus fort alors on actualise le cout
                 for (std::vector<Node>::iterator iter = open_list.begin(); iter != open_list.end(); ++iter)
                 {
                     if (iter->pos.x == new_node.pos.x and iter->pos.y == new_node.pos.y)
@@ -131,6 +129,7 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
                         {
                             iter->f_cost = new_node.f_cost;
                             iter->g_cost = new_node.g_cost;
+                            iter->came_from = new_node.came_from;
                             replaced = 1;
                             break;
                         }

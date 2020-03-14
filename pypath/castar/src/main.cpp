@@ -92,6 +92,6 @@ int main(int argc, char const *argv[])
     start.pos = {10,10};
     end.pos = {290,160};
     std::cout << astar.find_path(start,end, board , &path) << endl;
-    board_visualize(board, path);
+    //board_visualize(board, path);
     return 0;
 }
