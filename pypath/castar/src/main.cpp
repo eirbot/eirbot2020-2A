@@ -66,14 +66,14 @@ int main(int argc, char const *argv[])
     r.dim.width = 10;
     board.add_obsctacle(r);
 
-    board_visualize(board);
+    //board_visualize(board);
 
     std::cout << "A* !" << endl;
     castar astar = castar();
     vector<Node> path;
     Node start, end;
     start.pos = {10,10};
-    end.pos = {120,10};
+    end.pos = {290,160};
     std::cout << astar.find_path(start,end, board , &path) << endl;
     return 0;
 }
