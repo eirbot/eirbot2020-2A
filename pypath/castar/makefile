@@ -1,15 +1,25 @@
 SUFFIX := $(shell python3-config --extension-suffix)
 PY_LIBS := $(shell python3 -m pybind11 --includes)
+
+TEST = yes
+
 # project name (generate executable with this name)
+ifeq ($(TEST),yes)
+TARGET   = castar
+else
 TARGET   = castar$(SUFFIX)
-
+endif
 CC       = g++
-# compiling flags here
-CFLAGS   = -O3 -Wall -Werror -shared -g -std=c++11 -fPIC $(PY_LIBS)
-
 LINKER   = g++
-# linking flags here
-LFLAGS   = -Wall -shared -fPIC $(PY_LIBS)
+# compiling flags here
+ifeq ($(TEST),yes)
+	CFLAGS   = -O3 -Wall -Werror -g -std=c++11 -DTEST
+	LFLAGS   = -Wall
+else
+	CFLAGS   = -O3 -Wall -Werror -shared -g -std=c++11 -fPIC $(PY_LIBS)
+	LFLAGS   = -Wall -shared -fPIC $(PY_LIBS)
+endif
+
 
 # change these to proper directories where each file should be
 SRCDIR   = src
@@ -29,7 +39,7 @@ $(BINDIR)/$(TARGET): $(OBJECTS)
 $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	@$(CC) $(CFLAGS) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
-    
+
 .PHONY: clean
 clean:
 	@$(rm) $(OBJECTS)

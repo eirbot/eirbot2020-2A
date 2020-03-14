@@ -5,10 +5,12 @@
 #include "math.h"
 #include <chrono> 
 #include <bits/stdc++.h> 
+
+#ifndef TEST
 #include "pybind11/pybind11.h"
 
 namespace py = pybind11;
-
+#endif
 
 using namespace std;
 
@@ -86,12 +88,12 @@ void test(void){
     r.pos.y = 40;
     r.dim.height = 40;
     r.dim.width = 10;
-    //board.add_obsctacle(r);
+    board.add_obsctacle(r);
     r.pos.x = 80;
     r.pos.y = 80;
     r.dim.height = 2;
     r.dim.width = 200;
-    //board.add_obsctacle(r);
+    board.add_obsctacle(r);
 
 
     castar astar = castar();
@@ -116,10 +118,20 @@ void test(void){
 
 }
 
+#ifndef TEST
 PYBIND11_MODULE(castar, m) {
-    m.doc() = "Astar test function"; // optional module docstring
+    m.doc() = "Library implementing the A* pathfinding algorithme"; // optional module docstring
 
-    m.def("test", &test, "A function which test");
+    m.def("test", &test, "A function which test A*");
 }
+#else
+
+int main(int argc, char const *argv[])
+{
+    test();
+    return 0;
+}
+
+#endif
 
 
