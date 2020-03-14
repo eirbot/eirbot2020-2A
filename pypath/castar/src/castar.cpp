@@ -2,6 +2,7 @@
 #include "math.h"
 #include "stdio.h"
 #include <queue>
+#include <iostream>
 
 castar::castar()
 {
@@ -9,6 +10,52 @@ castar::castar()
 
 castar::~castar()
 {
+}
+
+bool in_circle(Coordinates pos, Circle c){
+    return sqrt(square(c.pos.x-pos.x)+square(c.pos.y-pos.y)) < c.diameter/2;
+}
+
+void visu(Field board, Coordinates ps){
+    fgetc(stdin);
+    Circle robot;
+    robot.diameter =4;
+    robot.pos = ps;
+    Coordinates pos;
+    for (size_t j = 0; j <= 100; j+=2)
+    {
+        for (size_t i = 0; i <= 300; i+= 2)
+        {
+            if (!j or j == 200)
+            {
+                std::cout << "-";
+                continue;
+            }
+            
+            else if (!i or i == 300)
+            {
+                std::cout << "|";
+                continue;
+            }
+            
+            pos.x = i;
+            pos.y = j;
+            if (in_circle(pos,robot))
+            {
+                std::cout << "R";
+            }
+            else if (!board.is_possible(pos))
+            {
+                std::cout << "X";
+            }else
+            {
+                std::cout << " ";
+            }
+
+            
+        }
+        std::cout << "\n";
+    }
 }
 
 err_t castar::find_path(Node start, Node end, Field field, std::vector<Node> *final_path){
@@ -33,13 +80,13 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Node> *fi
     open_list.push_back(start);
     Node current;
     Node tmp;
-    while (open_list.size())
+    while (!open_list.empty())
     {
         tmp = open_list.back();
         size_t x=0;
         for (size_t i = 0; i < open_list.size(); i++)
         {
-            if(open_list[i].h_cost<tmp.h_cost){
+            if(open_list[i].f_cost<tmp.f_cost){
                 tmp = open_list[i];
                 x = i;
             }
@@ -47,11 +94,11 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Node> *fi
         
         current = tmp;
         open_list.erase(open_list.begin() + x);
-        printf("current %d,%d, %f \n",current.pos.x,current.pos.y, current.h_cost);
         if(current.pos.x == end.pos.x and current.pos.y == end.pos.y){
-            //Find algo 
+            printf("Done! \n");
             return NO_ERROR;
         }
+
         for(int8_t x=-1; x<=1; x++){
             for(int8_t y=-1; y<=1; y++){
                 if (x == 0 and y ==0)
@@ -83,22 +130,39 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Node> *fi
                     }
                 }
 
+
                 //printf("new nodes %d,%d\n",x,y);
+                
                 new_node.g_cost = current.g_cost + distance(new_node.pos, current.pos);
                 new_node.h_cost = distance(new_node.pos, end.pos);
                 new_node.f_cost = new_node.h_cost + new_node.g_cost;
                 
-                // Si node deja connue mais avec un poid plus lourd alors on traite
+                int replaced = 0;
+                int seen = 0;
+                // Si node deja connue mais avec un poid plus lourd alors on actualise le cout
                 for( std::vector<Node>::iterator iter = open_list.begin(); iter != open_list.end(); ++iter ){
                     if(iter->pos.x == new_node.pos.x and iter->pos.y == new_node.pos.y){
+                        seen =1;
                         if (iter->f_cost > new_node.f_cost) // FIXME is that right ?
                         {
-                            *iter = new_node;
+                            iter->f_cost = new_node.f_cost;
+                            iter->g_cost = new_node.g_cost;
+                            replaced = 1;
+                            break;
                         }
 
                     }
                 }
-                open_list.push_back(new_node);
+                if (seen)
+                {
+                    continue;
+                }
+                if (!replaced)
+                {
+                    open_list.push_back(new_node);
+                    replaced = 0;
+                }
+
 
             }
         }
