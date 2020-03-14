@@ -70,6 +70,7 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
         open_list.erase(open_list.begin() + x);
         if (current.pos.x == end.pos.x and current.pos.y == end.pos.y)
         {
+            printf("op %ld cl %ld \n", open_list.size(), close_list.size());
             reconstruct_path(&close_list, final_path, current);
             return NO_ERROR;
         }
@@ -108,11 +109,10 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
                 }
                 if (in_close)
                 {
-                    in_close = 1;
                     continue;
                 }
-                
-                new_node.g_cost = current.g_cost + distance(new_node.pos, current.pos);
+                new_node.g_cost = current.g_cost + distance(new_node.pos, current.pos); // slower but the best path
+                //new_node.g_cost = current.g_cost + 1; // faster but not the most efficient path
                 new_node.h_cost = distance(new_node.pos, end.pos);
                 new_node.f_cost = new_node.h_cost + new_node.g_cost;
                 new_node.came_from = current.pos;
@@ -142,7 +142,6 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
                 if (!replaced)
                 {
                     open_list.push_back(new_node);
-                    replaced = 0;
                 }
             }
         }

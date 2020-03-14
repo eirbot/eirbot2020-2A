@@ -3,7 +3,15 @@
 #include "field.hpp"
 #include <iostream>
 #include "math.h"
+#include <chrono> 
+#include <bits/stdc++.h> 
+#include "pybind11/pybind11.h"
+
+namespace py = pybind11;
+
+
 using namespace std;
+
 
 bool is_in_circle(Coordinates pos, Circle c){
     return sqrt(square(c.pos.x-pos.x)+square(c.pos.y-pos.y)) < c.diameter/2;
@@ -64,8 +72,7 @@ void board_visualize(Field board, std::vector<Coordinates> path){
     }
 }
 
-int main(int argc, char const *argv[])
-{
+void test(void){
     std::cout << "Launching !" << endl;
     Field board = Field(200);
     Rectangle r;
@@ -73,17 +80,18 @@ int main(int argc, char const *argv[])
     r.pos.y = 20;
     r.dim.height = 40;
     r.dim.width = 2;
+    
     board.add_obsctacle(r);
     r.pos.x = 150;
     r.pos.y = 40;
     r.dim.height = 40;
     r.dim.width = 10;
-    board.add_obsctacle(r);
+    //board.add_obsctacle(r);
     r.pos.x = 80;
     r.pos.y = 80;
     r.dim.height = 2;
     r.dim.width = 200;
-    board.add_obsctacle(r);
+    //board.add_obsctacle(r);
 
 
     castar astar = castar();
@@ -91,7 +99,27 @@ int main(int argc, char const *argv[])
     Node start, end;
     start.pos = {10,10};
     end.pos = {290,160};
-    std::cout << astar.find_path(start,end, board , &path) << endl;
-    //board_visualize(board, path);
-    return 0;
+    auto t_start = chrono::high_resolution_clock::now(); 
+    ios_base::sync_with_stdio(false); 
+    astar.find_path(start,end, board , &path);
+    auto t_end = chrono::high_resolution_clock::now(); 
+  
+    // Calculating total time taken by the program. 
+    double time_taken = chrono::duration_cast<chrono::nanoseconds>(t_end - t_start).count(); 
+  
+    time_taken *= 1e-9; 
+  
+    cout << "Time taken by program is : " << fixed  
+         << time_taken << setprecision(9); 
+    cout << " sec" << endl; 
+    board_visualize(board, path);
+
 }
+
+PYBIND11_MODULE(castar, m) {
+    m.doc() = "Astar test function"; // optional module docstring
+
+    m.def("test", &test, "A function which test");
+}
+
+

@@ -1,13 +1,15 @@
+SUFFIX := $(shell python3-config --extension-suffix)
+PY_LIBS := $(shell python3 -m pybind11 --includes)
 # project name (generate executable with this name)
-TARGET   = castar
+TARGET   = castar$(SUFFIX)
 
 CC       = g++
 # compiling flags here
-CFLAGS   = -std=c++11 -Wall -Werror -g -O3
+CFLAGS   = -O3 -Wall -Werror -shared -g -std=c++11 -fPIC $(PY_LIBS)
 
 LINKER   = g++
 # linking flags here
-LFLAGS   = -Wall
+LFLAGS   = -Wall -shared -fPIC $(PY_LIBS)
 
 # change these to proper directories where each file should be
 SRCDIR   = src
