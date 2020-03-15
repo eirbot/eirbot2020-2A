@@ -13,7 +13,6 @@ castar::~castar()
 
 void castar::reconstruct_path(std::vector<Node> *valid_paths, std::vector<Coordinates> *real_path, Node end)
 {
-
     Node tmp = end;
     while (tmp.pos.x != tmp.came_from.x or tmp.pos.y != tmp.came_from.y)
     {
@@ -70,7 +69,6 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
         open_list.erase(open_list.begin() + x);
         if (current.pos.x == end.pos.x and current.pos.y == end.pos.y)
         {
-            printf("op %ld cl %ld \n", open_list.size(), close_list.size());
             reconstruct_path(&close_list, final_path, current);
             return NO_ERROR;
         }
