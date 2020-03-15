@@ -25,9 +25,9 @@ void board_visualize(Field board, std::vector<Coordinates> path){
     robot.pos.x = robot.pos.y = 10;
     Coordinates pos;
     bool is_path;
-    for (size_t j = 0; j <= 200; j+=2)
+    for (size_t j = 0; j <= 200; j+=1)
     {
-        for (size_t i = 0; i <= 300; i+= 2)
+        for (size_t i = 0; i <= 300; i+= 1)
         {
             if (!j or j == 200)
             {
@@ -58,11 +58,11 @@ void board_visualize(Field board, std::vector<Coordinates> path){
             {
                 std::cout << "R";
             }else if(is_path){
-                std::cout << "+";
+                std::cout << "&";
             }
             else if (!board.is_possible(pos))
             {
-                std::cout << "X";
+                std::cout << "²";
             }else
             {
                 std::cout << " ";
@@ -115,6 +115,9 @@ void test(void){
          << time_taken << setprecision(9); 
     cout << " sec" << endl; 
     board_visualize(board, path);
+    vector <Coordinates> final_path;
+    astar.smooth_path(path, &final_path);
+    board_visualize(board, final_path);
 
 }
 

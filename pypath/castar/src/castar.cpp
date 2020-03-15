@@ -151,7 +151,31 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
 }
 
 err_t castar::smooth_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path)
-{
+{   
+    Coordinates previous_deriv = {0,0};
+    Coordinates deriv;
+    Coordinates previous_pos = path.front();
+    final_path->push_back(previous_pos);
+    for (std::vector<Coordinates>::iterator iter = path.begin(); iter != path.end(); ++iter)
+    {
+        deriv.x = iter->x - previous_pos.x;
+        deriv.y = iter->y - previous_pos.y;
+
+        if (previous_deriv.x != deriv.x or previous_deriv.y != deriv.y)
+        {
+            final_path->push_back(*iter);
+        }
+
+        previous_deriv = deriv;
+        previous_pos.x = iter->x;
+        previous_pos.y = iter->y;
+    }
+    
+    if (previous_pos.x != path.back().x or previous_pos.y != path.back().y)
+    {
+        final_path->push_back(path.back());
+    }
+    
     return NO_ERROR;
 }
 
