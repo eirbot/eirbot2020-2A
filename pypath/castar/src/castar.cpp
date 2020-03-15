@@ -46,6 +46,15 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
     }
 
     std::vector<Node> open_list;
+    int close_nodes[field_dim.width][field_dim.height];
+    for (int32_t i = 0; i < field_dim.width; i++)
+    {
+        for (int32_t j = 0; j < field_dim.height; j++)
+        {
+            close_nodes[i][j] = 0;
+        }
+    }
+    
     std::vector<Node> close_list;
     start.g_cost = start.f_cost = start.h_cost = 0;
     start.came_from = start.pos;
@@ -96,17 +105,7 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
                     continue;
                 }
 
-                int in_close = 0;
-                for (std::vector<Node>::iterator iter = close_list.begin(); iter != close_list.end(); ++iter)
-                {
-                    if (iter->pos.x == new_node.pos.x and iter->pos.y == new_node.pos.y)
-                    {
-                        in_close = 1;
-                        break;
-                    }
-                }
-                if (in_close)
-                {
+                if(close_nodes[new_node.pos.x][new_node.pos.y]){
                     continue;
                 }
                 new_node.g_cost = current.g_cost + distance(new_node.pos, current.pos); // slower but the best path
@@ -143,6 +142,7 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
                 }
             }
         }
+        close_nodes[current.pos.x][current.pos.y] = 1;
         close_list.push_back(current);
     }
 
