@@ -1,7 +1,7 @@
 SUFFIX := $(shell python3-config --extension-suffix)
 PY_LIBS := $(shell python3 -m pybind11 --includes)
 
-TEST = yes
+TEST = no
 
 # project name (generate executable with this name)
 ifeq ($(TEST),yes)

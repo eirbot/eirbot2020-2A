@@ -1,2 +1,2 @@
 
-from .cstar import *
+from .castar import *

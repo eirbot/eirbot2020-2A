@@ -14,6 +14,10 @@ namespace py = pybind11;
 
 using namespace std;
 
+#define DEFAULT_ROBOT_DIAMETER_MM 200
+
+Field board = Field(DEFAULT_ROBOT_DIAMETER_MM);
+Castar astar = Castar();
 
 bool is_in_circle(Coordinates pos, Circle c){
     return sqrt(square(c.pos.x-pos.x)+square(c.pos.y-pos.y)) < c.diameter/2;
@@ -76,7 +80,6 @@ void board_visualize(Field board, std::vector<Coordinates> path){
 
 void test(void){
     std::cout << "Launching !" << endl;
-    Field board = Field(200);
     Rectangle r;
     r.pos.x = 60;
     r.pos.y = 20;
@@ -96,7 +99,6 @@ void test(void){
     board.add_obsctacle(r);
 
 
-    castar astar = castar();
     vector<Coordinates> path;
     Node start, end;
     start.pos = {10,10};
@@ -119,10 +121,12 @@ void test(void){
 }
 
 #ifndef TEST
-PYBIND11_MODULE(castar, m) {
+PYBIND11_MODULE(Castar, m) {
     m.doc() = "Library implementing the A* pathfinding algorithme"; // optional module docstring
 
-    m.def("test", &test, "A function which test A*");
+    m.def("test", &test, "The A* function precise to the cm"); // py::arg("i"), py::arg("j")
+
+    //m.def("test2", &test, "The A* function precise to the cm");
 }
 #else
 

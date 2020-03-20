@@ -3,15 +3,15 @@
 #include "stdio.h"
 #include <queue>
 
-castar::castar()
+Castar::Castar()
 {
 }
 
-castar::~castar()
+Castar::~Castar()
 {
 }
 
-void castar::reconstruct_path(std::vector<Node> *valid_paths, std::vector<Coordinates> *real_path, Node end)
+void Castar::reconstruct_path(std::vector<Node> *valid_paths, std::vector<Coordinates> *real_path, Node end)
 {
     Node tmp = end;
     while (tmp.pos.x != tmp.came_from.x or tmp.pos.y != tmp.came_from.y)
@@ -28,7 +28,7 @@ void castar::reconstruct_path(std::vector<Node> *valid_paths, std::vector<Coordi
     }
 }
 
-err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinates> *final_path)
+err_t Castar::find_path(Node start, Node end, Field field, std::vector<Coordinates> *final_path)
 {
 
     Size field_dim = field.get_dimensions();
@@ -150,12 +150,12 @@ err_t castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
     return ERR_NO_PATH;
 }
 
-err_t castar::smooth_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path)
+err_t Castar::smooth_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path)
 {
     return NO_ERROR;
 }
 
-float castar::distance(Coordinates a, Coordinates b)
+float Castar::distance(Coordinates a, Coordinates b)
 {
     return sqrt(square(a.x - b.x) + square(a.y - b.y));
 }

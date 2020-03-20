@@ -17,7 +17,7 @@ struct Node
     float f_cost;
 };
 
-class castar
+class Castar
 {
 private:
     template<typename T>
@@ -29,26 +29,26 @@ private:
     float distance(Coordinates a, Coordinates b);
     void reconstruct_path(std::vector<Node> *valid_paths , std::vector<Coordinates> *real_path, Node end);
 public:
-    castar();
-    ~castar();
+    Castar();
+    ~Castar();
     err_t find_path(Node start, Node end, Field field, std::vector<Coordinates> *final_path);
     err_t smooth_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path);
 };
 
 template<typename T>
-T castar::min(T val_1, T val_2)
+T Castar::min(T val_1, T val_2)
 {
 	return (val_1 < val_2) ? val_1 : val_2;
 }
 
 template<typename T>
-T castar::max(T val_1, T val_2)
+T Castar::max(T val_1, T val_2)
 {
 	return (val_1 > val_2) ? val_1 : val_2;
 }
 
 template<typename T>
-T castar::limit(T val, T v_min, T v_max)
+T Castar::limit(T val, T v_min, T v_max)
 {
 	return max(min(val, v_max), v_min);
 }
