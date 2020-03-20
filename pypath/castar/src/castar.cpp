@@ -28,24 +28,26 @@ void Castar::reconstruct_path(std::vector<Node> *valid_paths, std::vector<Coordi
     }
 }
 
-err_t Castar::find_path(Node start, Node end, Field field, std::vector<Coordinates> *final_path)
+err_t Castar::find_path(Coordinates start, Coordinates end, Field field, std::vector<Coordinates> *final_path)
 {
 
     Size field_dim = field.get_dimensions();
-    if (start.pos.x > (int32_t)field_dim.width - 1 or
-        start.pos.x < 0 or
-        start.pos.y > (int32_t)field_dim.height - 1 or
-        start.pos.y < 0)
+    if (start.x > (int32_t)field_dim.width - 1 or
+        start.x < 0 or
+        start.y > (int32_t)field_dim.height - 1 or
+        start.y < 0)
     {
         return ERR_ARGS_OUT_OF_RANGE;
     }
 
-    if (!field.is_possible(end.pos))
+    if (!field.is_possible(end))
     {
         return ERR_GOAL_IS_BLOCKED;
     }
 
     std::vector<Node> open_list;
+    std::vector<Node> close_list;
+    
     int close_nodes[field_dim.width][field_dim.height];
     for (int32_t i = 0; i < field_dim.width; i++)
     {
@@ -54,11 +56,16 @@ err_t Castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
             close_nodes[i][j] = 0;
         }
     }
-    
-    std::vector<Node> close_list;
-    start.g_cost = start.f_cost = start.h_cost = 0;
-    start.came_from = start.pos;
-    open_list.push_back(start);
+
+    // Convert Coordinates to nodes
+    Node start_node;
+    start_node.pos = start;
+    Node end_node;
+    end_node.pos = end;
+
+    start_node.g_cost = start_node.f_cost = start_node.h_cost = 0;
+    start_node.came_from = start_node.pos;
+    open_list.push_back(start_node);
     Node current;
     Node tmp;
     while (!open_list.empty())
@@ -76,7 +83,7 @@ err_t Castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
 
         current = tmp;
         open_list.erase(open_list.begin() + x);
-        if (current.pos.x == end.pos.x and current.pos.y == end.pos.y)
+        if (current.pos.x == end_node.pos.x and current.pos.y == end_node.pos.y)
         {
             reconstruct_path(&close_list, final_path, current);
             return NO_ERROR;
@@ -110,7 +117,7 @@ err_t Castar::find_path(Node start, Node end, Field field, std::vector<Coordinat
                 }
                 new_node.g_cost = current.g_cost + distance(new_node.pos, current.pos); // slower but the best path
                 //new_node.g_cost = current.g_cost + 1; // faster but not the most efficient path
-                new_node.h_cost = distance(new_node.pos, end.pos);
+                new_node.h_cost = distance(new_node.pos, end_node.pos);
                 new_node.f_cost = new_node.h_cost + new_node.g_cost;
                 new_node.came_from = current.pos;
 

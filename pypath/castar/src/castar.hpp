@@ -20,37 +20,13 @@ struct Node
 class Castar
 {
 private:
-    template<typename T>
-    T min(T val_1, T val_2);
-    template<typename T>
-    T max(T val_1, T val_2);
-    template<typename T>
-    T limit(T val, T v_min, T v_max);
     float distance(Coordinates a, Coordinates b);
     void reconstruct_path(std::vector<Node> *valid_paths , std::vector<Coordinates> *real_path, Node end);
 public:
     Castar();
     ~Castar();
-    err_t find_path(Node start, Node end, Field field, std::vector<Coordinates> *final_path);
+    err_t find_path(Coordinates start, Coordinates end, Field field, std::vector<Coordinates> *final_path);
     err_t smooth_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path);
 };
-
-template<typename T>
-T Castar::min(T val_1, T val_2)
-{
-	return (val_1 < val_2) ? val_1 : val_2;
-}
-
-template<typename T>
-T Castar::max(T val_1, T val_2)
-{
-	return (val_1 > val_2) ? val_1 : val_2;
-}
-
-template<typename T>
-T Castar::limit(T val, T v_min, T v_max)
-{
-	return max(min(val, v_max), v_min);
-}
 
 #endif
