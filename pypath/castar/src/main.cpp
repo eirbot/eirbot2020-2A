@@ -1,6 +1,6 @@
 #include "castar.hpp"
 #include "field.hpp"
-import <iostream>
+
 #ifndef TEST
 #include "pybind11/pybind11.h"
 #include "pybind11/stl_bind.h"
@@ -30,7 +30,7 @@ void add_obstacle(Rectangle rec){
  *  Calculate the shortest path between two points
  *  Need tuples with size 2: (X, Y)
  */
-vector<Coordinates> astar(py::tuple start, py::tuple end){
+vector<Coordinates> astar(Coordinates start, Coordinates end){
     
     Coordinates start_coordinates;
     Coordinates end_coordinates;
@@ -47,7 +47,13 @@ vector<Coordinates> astar(py::tuple start, py::tuple end){
 // BINDINGS
 
 #ifndef TEST
+
+
 PYBIND11_MODULE(castar, m) {
+    py::class_<Coordinates>(m, "Coordinates")
+    .def_readwrite("x", &Coordinates::x)
+    .def_readwrite("y", &Coordinates::y);
+
     m.doc() = "Library implementing the A* pathfinding algorithme"; // optional module docstring
     m.def("add_obstacle", &add_obstacle, "Add a obtacle to the board", py::arg("rectangle_obstacle"));
     m.def("astar", &astar, "The A* function precise to the cm", py::arg("Start"), py::arg("End"));
