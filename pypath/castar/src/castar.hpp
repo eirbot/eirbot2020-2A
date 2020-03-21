@@ -26,7 +26,7 @@ public:
     Castar();
     ~Castar();
     err_t find_path(Coordinates start, Coordinates end, Field field, std::vector<Coordinates> *final_path);
-    err_t smooth_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path);
+    err_t simplify_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path);
 };
 
 #endif

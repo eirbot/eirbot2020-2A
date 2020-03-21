@@ -4,12 +4,17 @@
 #include <sys/types.h>
 #include <vector>
 
-
-
-struct Coordinates
+   
+class Coordinates
 {
-    int32_t x;
-    int32_t y; 
+    public:
+        Coordinates(){}
+        Coordinates(int32_t _x, int32_t _y){
+            x=_x;
+            y=_y;
+        }
+        int32_t x;
+        int32_t y; 
 };
 
 struct Size

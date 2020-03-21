@@ -157,7 +157,7 @@ err_t Castar::find_path(Coordinates start, Coordinates end, Field field, std::ve
     return ERR_NO_PATH;
 }
 
-err_t Castar::smooth_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path)
+err_t Castar::simplify_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path)
 {
     return NO_ERROR;
 }
