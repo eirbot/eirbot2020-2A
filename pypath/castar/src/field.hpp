@@ -17,21 +17,39 @@ class Coordinates
         int32_t y; 
 };
 
-struct Size
+class Size
 {
+    public:
+        Size(){}
+        Size(int32_t _width, int32_t _height){
+            width=_width;
+            height=_height;
+        }
     int32_t width;
     int32_t height; 
 };
 
 
-struct Circle{
+class Circle{
+    public:
+        Circle(){}
+        Circle(Coordinates _pos, int32_t _diameter){
+            pos = _pos;
+            diameter = _diameter;
+        }
     Coordinates pos;
     int32_t diameter;
 };
 
-struct Rectangle{
-    Coordinates pos;
-    Size dim;
+class Rectangle{
+    public:
+        Rectangle(){}
+        Rectangle(Coordinates _pos, Size _dim) {
+            pos = _pos;
+            dim = _dim;
+        }
+        Coordinates pos;
+        Size dim;
 };
 
 
