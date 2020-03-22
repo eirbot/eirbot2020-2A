@@ -31,7 +31,7 @@ void Castar::reconstruct_path(std::vector<Node> *valid_paths, std::vector<Coordi
     std::reverse(real_path->begin(), real_path->end());
 }
 
-err_t Castar::find_path(Coordinates start, Coordinates end, Field field, std::vector<Coordinates> *final_path)
+int Castar::find_path(Coordinates start, Coordinates end, Field field, std::vector<Coordinates> *final_path)
 {
 
     Size field_dim = field.get_dimensions();
@@ -161,7 +161,7 @@ err_t Castar::find_path(Coordinates start, Coordinates end, Field field, std::ve
     return ERR_NO_PATH;
 }
 
-err_t Castar::simplify_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path)
+int Castar::simplify_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path)
 {
     if (path.size() == 0)
     {
@@ -206,6 +206,15 @@ err_t Castar::simplify_path(std::vector<Coordinates> path, std::vector<Coordinat
 
     return NO_ERROR;
 }
+
+int Castar::find_path_simplified(Coordinates start, Coordinates end, Field field, std::vector<Coordinates> *final_path){
+    std::vector<Coordinates> path;
+    int return_code = find_path(start, end, field, &path);
+    simplify_path(path, final_path);
+    return return_code;
+}
+
+
 
 float Castar::distance(Coordinates a, Coordinates b)
 {

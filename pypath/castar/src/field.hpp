@@ -66,6 +66,7 @@ public:
     Field(unsigned int width_mm, unsigned int height_mm, unsigned int robot_diameter_mm);
     ~Field();
     Size get_dimensions(void);
+    int get_number_of_obstacle(void);
     void add_obsctacle(Rectangle obsctacle);
     bool delete_obstacle(Coordinates obstacle_position);
     bool is_possible(Coordinates robot_pos);

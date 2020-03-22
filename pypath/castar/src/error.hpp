@@ -1,8 +1,6 @@
 #ifndef H_ERROR
 #define H_ERROR
-#include <sys/types.h>
 
-typedef u_int8_t err_t;
 
 #define NO_ERROR 0
 

@@ -82,3 +82,7 @@ bool Field::delete_obstacle(Coordinates obstacle_position){
     }
     return false;
 }
+
+int Field::get_number_of_obstacle(void){
+    return (int)list_obsctacles.size();
+}
