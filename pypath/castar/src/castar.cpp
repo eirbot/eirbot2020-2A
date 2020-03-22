@@ -50,7 +50,7 @@ err_t Castar::find_path(Coordinates start, Coordinates end, Field field, std::ve
 
     std::vector<Node> open_list;
     std::vector<Node> close_list;
-    
+
     int close_nodes[field_dim.width][field_dim.height];
     for (int i = 0; i < field_dim.width; i++)
     {
@@ -115,7 +115,8 @@ err_t Castar::find_path(Coordinates start, Coordinates end, Field field, std::ve
                     continue;
                 }
 
-                if(close_nodes[new_node.pos.x][new_node.pos.y]){
+                if (close_nodes[new_node.pos.x][new_node.pos.y])
+                {
                     continue;
                 }
                 new_node.g_cost = current.g_cost + distance(new_node.pos, current.pos); // slower but the best path
@@ -161,19 +162,20 @@ err_t Castar::find_path(Coordinates start, Coordinates end, Field field, std::ve
 }
 
 err_t Castar::simplify_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path)
-{   
+{
     if (path.size() == 0)
     {
         return ERR_NO_PATH;
-    }else if(path.size() == 1){
+    }
+    else if (path.size() == 1)
+    {
         final_path->push_back(path.front());
         return NO_ERROR;
     }
-    
+
     Coordinates previous_pos = path.front();
     Coordinates next = path[1];
     Coordinates previous_deriv = {next.x - previous_pos.x, next.y - previous_pos.y};
-    printf("%d %d\n", previous_deriv.x, previous_deriv.y);
 
     Coordinates deriv;
     std::vector<Coordinates>::iterator iter = path.begin();
@@ -182,7 +184,6 @@ err_t Castar::simplify_path(std::vector<Coordinates> path, std::vector<Coordinat
     {
         deriv.x = iter->x - previous_pos.x;
         deriv.y = iter->y - previous_pos.y;
-        printf("pos: %d %d | deriv :%d %d\n", iter->x, iter->y, deriv.x, deriv.y);
 
         if (previous_deriv.x != deriv.x or previous_deriv.y != deriv.y)
         {
@@ -197,11 +198,12 @@ err_t Castar::simplify_path(std::vector<Coordinates> path, std::vector<Coordinat
     if (final_path->size() == 0)
     {
         final_path->push_back(path.back());
-    } else if (path.back().x != final_path->back().x or path.back().y != final_path->back().y)
+    }
+    else if (path.back().x != final_path->back().x or path.back().y != final_path->back().y)
     {
         final_path->push_back(path.back());
     }
-    
+
     return NO_ERROR;
 }
 
