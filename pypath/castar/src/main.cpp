@@ -87,8 +87,8 @@ PYBIND11_MODULE(castar, m) {
     .def(py::init<const Coordinates, const Size &>())
     .def("__repr__",
         [](const Rectangle &rec) {
-            return "pos:" + to_string(rec.pos.x) + "|" + to_string(rec.pos.y) + 
-            "|Size:" + to_string(rec.dim.width) + "|" + to_string(rec.dim.height);
+            return "Pos:" + to_string(rec.pos.x) + "|" + to_string(rec.pos.y) + 
+            " - Size:" + to_string(rec.dim.width) + "|" + to_string(rec.dim.height);
         }
     );
 
