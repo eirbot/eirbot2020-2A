@@ -66,10 +66,29 @@ PYBIND11_MODULE(castar, m) {
     py::class_<Coordinates>(m, "Coordinates")
     .def_readwrite("x", &Coordinates::x)
     .def_readwrite("y", &Coordinates::y)
-    .def(py::init<const int32_t, const int32_t &>())
+    .def(py::init<const int, const int &>())
     .def("__repr__",
         [](const Coordinates &crd) {
             return "x:" + to_string(crd.x) + "|y:" + to_string(crd.y);
+        }
+    );
+    py::class_<Size>(m, "Size")
+    .def_readwrite("width", &Size::width)
+    .def_readwrite("height", &Size::height)
+    .def(py::init<const int, const int &>())
+    .def("__repr__",
+        [](const Size &i) {
+            return "Width:" + to_string(i.width) + "|Height:" + to_string(i.height);
+        }
+    );
+    py::class_<Rectangle>(m, "Rectangle")
+    .def_readwrite("pos", &Rectangle::pos)
+    .def_readwrite("dim", &Rectangle::dim)
+    .def(py::init<const Coordinates, const Size &>())
+    .def("__repr__",
+        [](const Rectangle &rec) {
+            return "pos:" + to_string(rec.pos.x) + "|" + to_string(rec.pos.y) + 
+            "|Size:" + to_string(rec.dim.width) + "|" + to_string(rec.dim.height);
         }
     );
 

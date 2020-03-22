@@ -2,6 +2,7 @@
 #include "math.h"
 #include "stdio.h"
 #include <queue>
+#include <algorithm>
 
 Castar::Castar()
 {
@@ -20,21 +21,23 @@ void Castar::reconstruct_path(std::vector<Node> *valid_paths, std::vector<Coordi
         {
             if ((*valid_paths)[i].pos.x == tmp.came_from.x and (*valid_paths)[i].pos.y == tmp.came_from.y)
             {
-                tmp = (*valid_paths)[i];
                 real_path->push_back(tmp.pos);
+                tmp = (*valid_paths)[i];
                 break;
             }
         }
     }
+    real_path->push_back(tmp.pos);
+    std::reverse(real_path->begin(), real_path->end());
 }
 
 err_t Castar::find_path(Coordinates start, Coordinates end, Field field, std::vector<Coordinates> *final_path)
 {
 
     Size field_dim = field.get_dimensions();
-    if (start.x > (int32_t)field_dim.width - 1 or
+    if (start.x > (int)field_dim.width - 1 or
         start.x < 0 or
-        start.y > (int32_t)field_dim.height - 1 or
+        start.y > (int)field_dim.height - 1 or
         start.y < 0)
     {
         return ERR_ARGS_OUT_OF_RANGE;
@@ -49,9 +52,9 @@ err_t Castar::find_path(Coordinates start, Coordinates end, Field field, std::ve
     std::vector<Node> close_list;
     
     int close_nodes[field_dim.width][field_dim.height];
-    for (int32_t i = 0; i < field_dim.width; i++)
+    for (int i = 0; i < field_dim.width; i++)
     {
-        for (int32_t j = 0; j < field_dim.height; j++)
+        for (int j = 0; j < field_dim.height; j++)
         {
             close_nodes[i][j] = 0;
         }
@@ -88,9 +91,9 @@ err_t Castar::find_path(Coordinates start, Coordinates end, Field field, std::ve
             reconstruct_path(&close_list, final_path, current);
             return NO_ERROR;
         }
-        for (int8_t x = -1; x <= 1; x++)
+        for (char x = -1; x <= 1; x++)
         {
-            for (int8_t y = -1; y <= 1; y++)
+            for (char y = -1; y <= 1; y++)
             {
                 if (x == 0 and y == 0)
                 {
@@ -99,9 +102,9 @@ err_t Castar::find_path(Coordinates start, Coordinates end, Field field, std::ve
                 Node new_node;
                 new_node.pos.x = current.pos.x + x;
                 new_node.pos.y = current.pos.y + y;
-                if (new_node.pos.x > (int32_t)field_dim.width - 1 or
+                if (new_node.pos.x > (int)field_dim.width - 1 or
                     new_node.pos.x < 0 or
-                    new_node.pos.y > (int32_t)field_dim.height - 1 or
+                    new_node.pos.y > (int)field_dim.height - 1 or
                     new_node.pos.y < 0)
                 {
                     continue;
@@ -159,14 +162,27 @@ err_t Castar::find_path(Coordinates start, Coordinates end, Field field, std::ve
 
 err_t Castar::simplify_path(std::vector<Coordinates> path, std::vector<Coordinates> *final_path)
 {   
-    Coordinates previous_deriv = {0,0};
-    Coordinates deriv;
+    if (path.size() == 0)
+    {
+        return ERR_NO_PATH;
+    }else if(path.size() == 1){
+        final_path->push_back(path.front());
+        return NO_ERROR;
+    }
+    
     Coordinates previous_pos = path.front();
-    final_path->push_back(previous_pos);
-    for (std::vector<Coordinates>::iterator iter = path.begin(); iter != path.end(); ++iter)
+    Coordinates next = path[1];
+    Coordinates previous_deriv = {next.x - previous_pos.x, next.y - previous_pos.y};
+    printf("%d %d\n", previous_deriv.x, previous_deriv.y);
+
+    Coordinates deriv;
+    std::vector<Coordinates>::iterator iter = path.begin();
+    std::advance(iter, 1);
+    while (iter != path.end())
     {
         deriv.x = iter->x - previous_pos.x;
         deriv.y = iter->y - previous_pos.y;
+        printf("pos: %d %d | deriv :%d %d\n", iter->x, iter->y, deriv.x, deriv.y);
 
         if (previous_deriv.x != deriv.x or previous_deriv.y != deriv.y)
         {
@@ -176,9 +192,12 @@ err_t Castar::simplify_path(std::vector<Coordinates> path, std::vector<Coordinat
         previous_deriv = deriv;
         previous_pos.x = iter->x;
         previous_pos.y = iter->y;
+        iter++;
     }
-    
-    if (previous_pos.x != path.back().x or previous_pos.y != path.back().y)
+    if (final_path->size() == 0)
+    {
+        final_path->push_back(path.back());
+    } else if (path.back().x != final_path->back().x or path.back().y != final_path->back().y)
     {
         final_path->push_back(path.back());
     }

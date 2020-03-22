@@ -11,7 +11,7 @@ Field::Field()
     robot.diameter = 20;
 }
 
-Field::Field(u_int32_t robot_diameter_mm)
+Field::Field(unsigned int robot_diameter_mm)
 {
     size.height = 200;
     size.width = 300;
@@ -20,7 +20,7 @@ Field::Field(u_int32_t robot_diameter_mm)
 
 }
 
-Field::Field(u_int32_t width_mm, u_int32_t height_mm, u_int32_t robot_diameter_mm){
+Field::Field(unsigned int width_mm, unsigned int height_mm, unsigned int robot_diameter_mm){
     size.height = height_mm/10;
     size.width = width_mm/10;
     robot.pos.x = robot.pos.y = 0;
@@ -60,7 +60,7 @@ bool Field::intersect(Circle circle, Rectangle rect){
     if (circle_distance.x <= (rect.dim.width/2)) { return true; } 
     if (circle_distance.y <= (rect.dim.height/2)) { return true; }
 
-    u_int32_t cornerDistance_sq = square(circle_distance.x - rect.dim.width/2) +
+    unsigned int cornerDistance_sq = square(circle_distance.x - rect.dim.width/2) +
                          square(circle_distance.y - rect.dim.height/2);
 
     return (cornerDistance_sq <= square(circle.diameter/2));

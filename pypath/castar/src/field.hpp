@@ -1,7 +1,6 @@
 #ifndef H_FIELD
 #define H_FIELD
 
-#include <sys/types.h>
 #include <vector>
 
    
@@ -9,36 +8,36 @@ class Coordinates
 {
     public:
         Coordinates(){}
-        Coordinates(int32_t _x, int32_t _y){
+        Coordinates(int _x, int _y){
             x=_x;
             y=_y;
         }
-        int32_t x;
-        int32_t y; 
+        int x;
+        int y; 
 };
 
 class Size
 {
     public:
         Size(){}
-        Size(int32_t _width, int32_t _height){
+        Size(int _width, int _height){
             width=_width;
             height=_height;
         }
-    int32_t width;
-    int32_t height; 
+    int width;
+    int height; 
 };
 
 
 class Circle{
     public:
         Circle(){}
-        Circle(Coordinates _pos, int32_t _diameter){
+        Circle(Coordinates _pos, int _diameter){
             pos = _pos;
             diameter = _diameter;
         }
     Coordinates pos;
-    int32_t diameter;
+    int diameter;
 };
 
 class Rectangle{
@@ -63,8 +62,8 @@ private:
     // on fait une classe obstacle ?
 public:
     Field();
-    Field(u_int32_t robot_diameter_mm);
-    Field(u_int32_t width_mm, u_int32_t height_mm, u_int32_t robot_diameter_mm);
+    Field(unsigned int robot_diameter_mm);
+    Field(unsigned int width_mm, unsigned int height_mm, unsigned int robot_diameter_mm);
     ~Field();
     Size get_dimensions(void);
     void add_obsctacle(Rectangle obsctacle);
