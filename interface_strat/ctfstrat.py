@@ -82,24 +82,48 @@ class BoardApp(object):
         
         resized_width = round(obstacle.dim.width*self.board_size_x/self.real_x)
         resized_height = round(obstacle.dim.height*self.board_size_y/self.real_y)
-        pygame.draw.rect(self.fenetre, (20, 20, 20), (x-math.floor(resized_width/2)+1,
+        pygame.draw.rect(self.fenetre, (100, 20, 20), (x-math.floor(resized_width/2)+1,
                                                          y-math.floor(resized_height/2)+1, resized_width, resized_height), 0)
+
+    def print_nodes(self, nodes):
+        for node in nodes:
+            self.print_node(node)
 
     def print_node(self, node):
         x = round(self.board_pos_x + node.x*self.board_size_x/self.real_x)
         y = round(self.board_pos_y + node.y*self.board_size_y/self.real_y)
         pygame.draw.rect(self.fenetre, (255, 100, 255), (x-3, y-3, 5, 5), 0)
+    
+    def print_waypoints(self, waypoints):
+        for wp in waypoints:
+            self.print_waypoint(wp)
 
-    def test_pathfinding(self, start, end):
+    def print_waypoint(self, wp):
+        x = round(self.board_pos_x + wp[0]*self.board_size_x/self.real_x)
+        y = round(self.board_pos_y + wp[1]*self.board_size_y/self.real_y)
+        pygame.draw.circle(self.fenetre, (19, 191, 97), (x, y), round(4 * self.board_size_x/self.real_x), 0)
+
+    def pathfinding(self, start, end):
         err , list_nodes = self.astar.find_path(start, end, self.board)
         if err:
             print("Astar error "+ str(err))
             return
-        for node in list_nodes:
-            self.print_node(node)
+        return list_nodes
+    
+    def convert_screen_pos_to_board_pos(self, point):
+        x = round((point[0] - self.board_pos_x)*self.real_x/self.board_size_x)
+        y = round((point[1] - self.board_pos_y)*self.real_y/self.board_size_y)
+        if x < 0 or y < 0 or x >= self.real_x or y >= self.real_y:
+            return None
+        return (x, y)
+
+
 
 
 class StratApp(object):
+    NORMAL = 0
+    EDIT_PATH = 1
+    TEST_PATHFINDING = 2
     def __init__(self):
         pygame.init()
         self.fenetre = pygame.display.set_mode(
@@ -107,19 +131,78 @@ class StratApp(object):
         self.fenetre.fill(BACKGROUND_COLOR)
         self.running = 1
         self.board = BoardApp()
+        self.last_wsize = pygame.display.get_surface().get_size()
+
+        self.constructed_path = []
+        self.mode = StratApp.NORMAL
+
+        self.waypoints_pathfinding = []
+        self.path_pathfinding = []
 
     def run(self):
+        clock = pygame.time.Clock()
         while self.running:
+            clock.tick(144)
             for event in pygame.event.get():  # On parcours la liste de tous les événements reçus
-                if event.type == QUIT or event.type == K_ESCAPE:  # Si un de ces événements est de type QUIT
+                if event.type == QUIT:  # Si un de ces événements est de type QUIT
                     self.running = 0  # On arrête la boucle
-                if event.type == VIDEORESIZE:
+                elif event.type == VIDEORESIZE:
+                    self.last_wsize = event.size
                     self.board.display(event.size)
-                if event.type == KEYDOWN:
+                elif event.type == KEYDOWN:
+                    if event.key == K_ESCAPE or event.key == K_n:
+                        self.mode = StratApp.NORMAL
                     if event.key == pygame.K_p:
-                        print("Calculating")
-                        self.board.test_pathfinding(pp.Coordinates(1, 1), pp.Coordinates(250, 150))
+                        self.mode = StratApp.TEST_PATHFINDING
+                    if event.key == pygame.K_e:
+                        self.mode = StratApp.EDIT_PATH
+                elif event.type == MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        if self.mode == StratApp.EDIT_PATH:
+                            self.construct_path(event.pos)
+                        elif self.mode == StratApp.TEST_PATHFINDING:
+                            self.push_waypoint_pathfinding(event.pos)
+                            self.print_pathfinding_result()
+
+                    elif event.button == 3:
+                        if self.mode == StratApp.EDIT_PATH:
+                            self.revert_path()
+            self.update()
             pygame.display.flip()
+
+    def update(self):
+        self.board.display(self.last_wsize)
+        if self.mode == StratApp.EDIT_PATH:
+            self.board.print_waypoints(self.constructed_path)
+        if self.mode == StratApp.TEST_PATHFINDING:
+            self.board.print_nodes(self.path_pathfinding)
+
+
+    def construct_path(self, mouse_pos):
+        converted_pos = self.board.convert_screen_pos_to_board_pos(mouse_pos)
+        if converted_pos is not None:
+            self.constructed_path.append(converted_pos)
+
+    def revert_path(self):
+        if len(self.constructed_path) !=0:
+            self.constructed_path.pop()
+    
+    def push_waypoint_pathfinding(self, wp):
+        if len(self.waypoints_pathfinding) >= 2:
+            self.waypoints_pathfinding.pop(0)
+        converted_pos = self.board.convert_screen_pos_to_board_pos(wp)
+        if converted_pos is not None:
+            self.waypoints_pathfinding.append(converted_pos)
+    
+    def print_pathfinding_result(self):
+        if len(self.waypoints_pathfinding) >= 2:
+            wp0 = self.waypoints_pathfinding[0]
+            wp1 = self.waypoints_pathfinding[1]
+            rt = self.board.pathfinding(pp.Coordinates(wp0[0],wp0[1]),pp.Coordinates(wp1[0],wp1[1]))
+            if rt is not None:
+                self.path_pathfinding = rt
+
+        
 
 
 if __name__ == "__main__":
