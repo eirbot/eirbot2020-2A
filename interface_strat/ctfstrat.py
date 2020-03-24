@@ -188,16 +188,17 @@ class StratApp(object):
             self.constructed_path.pop()
     
     def push_waypoint_pathfinding(self, wp):
-        if len(self.waypoints_pathfinding) >= 2:
-            self.waypoints_pathfinding.pop(0)
         converted_pos = self.board.convert_screen_pos_to_board_pos(wp)
         if converted_pos is not None:
+            if len(self.waypoints_pathfinding) >= 2:
+                self.waypoints_pathfinding.pop(0)
             self.waypoints_pathfinding.append(converted_pos)
     
     def print_pathfinding_result(self):
         if len(self.waypoints_pathfinding) >= 2:
             wp0 = self.waypoints_pathfinding[0]
             wp1 = self.waypoints_pathfinding[1]
+            print("Astar from", wp0 ," to ", wp1)
             rt = self.board.pathfinding(pp.Coordinates(wp0[0],wp0[1]),pp.Coordinates(wp1[0],wp1[1]))
             if rt is not None:
                 self.path_pathfinding = rt
