@@ -150,7 +150,7 @@ class BoardApp(Frame):
         err, list_nodes = self.astar.find_path(start, end, self.board)
         if err:
             print("Astar error " + str(err))
-            return
+            return None
         return list_nodes
 
     def pos_board_to_frame(self, pos):
@@ -184,6 +184,7 @@ class StratApp(object):
     NORMAL = 0
     EDIT_PATH = 1
     TEST_PATHFINDING = 2
+    RENDER_PATH = 3
 
     def __init__(self):
         pygame.init()
@@ -224,13 +225,16 @@ class StratApp(object):
                 self.mode = StratApp.TEST_PATHFINDING
             if event.key == pygame.K_e:
                 self.mode = StratApp.EDIT_PATH
+            if event.key == pygame.K_r:
+                self.mode = StratApp.RENDER_PATH
+                self.render_path()
         elif event.type == MOUSEBUTTONDOWN:
             if event.button == 1:
                 if self.mode == StratApp.EDIT_PATH:
                     self.construct_path(event.pos)
                 elif self.mode == StratApp.TEST_PATHFINDING:
-                    self.push_waypoint_pathfinding(event.pos)
-                    self.run_pathfinding()
+                    ret = self.push_waypoint_pathfinding(event.pos)
+                    if ret: self.run_pathfinding()
 
             elif event.button == 3:
                 if self.mode == StratApp.EDIT_PATH:
@@ -238,9 +242,9 @@ class StratApp(object):
 
     def display(self):
         self.update_frames()
-        if self.mode == StratApp.EDIT_PATH:
+        if self.mode in [StratApp.EDIT_PATH, StratApp.RENDER_PATH]:
             self.board.print_waypoints(self.constructed_path)
-        if self.mode == StratApp.TEST_PATHFINDING:
+        if self.mode in [StratApp.TEST_PATHFINDING, StratApp.RENDER_PATH]:
             self.board.print_nodes(self.path_pathfinding)
     
     def update_frames(self):
@@ -262,16 +266,39 @@ class StratApp(object):
             if len(self.waypoints_pathfinding) >= 2:
                 self.waypoints_pathfinding.pop(0)
             self.waypoints_pathfinding.append(converted_pos)
+            return True
+        return False
 
     def run_pathfinding(self):
         if len(self.waypoints_pathfinding) >= 2:
             wp0 = self.waypoints_pathfinding[0]
             wp1 = self.waypoints_pathfinding[1]
-            print("Astar from", wp0, " to ", wp1)
             returned_value = self.board.pathfinding(pp.Coordinates(
                 wp0[0], wp0[1]), pp.Coordinates(wp1[0], wp1[1]))
             if returned_value is not None:
                 self.path_pathfinding = returned_value
+                print("Astar from", wp0, " to ", wp1)
+    
+    def render_path(self):
+        self.path_pathfinding = []
+        if len(self.constructed_path) < 2 : return
+        path = self.constructed_path.copy()
+        wp0 = path.pop(0)
+        wp1 = path.pop(0)
+        returned_value = self.board.pathfinding(pp.Coordinates(
+            wp0[0], wp0[1]), pp.Coordinates(wp1[0], wp1[1]))
+        if returned_value is not None:
+            self.path_pathfinding.extend(returned_value)
+        for node in path: 
+            wp0 = wp1
+            wp1 = node
+            returned_value = self.board.pathfinding(pp.Coordinates(
+                wp0[0], wp0[1]), pp.Coordinates(wp1[0], wp1[1]))
+            if returned_value is not None:
+                self.path_pathfinding.extend(returned_value)
+
+
+
 
 
 
