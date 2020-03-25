@@ -15,7 +15,7 @@ DEFAULT_LIST_OBSTACLE = [pp.Rectangle(pp.Coordinates(60, 20), pp.Size(2, 40)),
 
 class Frame(object):
     COUNT = 0
-    def __init__(self, parent_window, position=(0, 0), size=(100, 70), dynamic_size=False, dynamic_pos=False, hovering=False, background_color=None):
+    def __init__(self, parent_window, position=(0, 0), size=(10, 10), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=None):
         self.id = Frame.COUNT
         Frame.COUNT += 1
         self.parent_window = parent_window
@@ -23,20 +23,74 @@ class Frame(object):
         self.position = position
         self.size = size
         self.dynamic_size = dynamic_size
+        self.dynamic_fill_y = dynamic_fill_y
         self.dynamic_pos = dynamic_pos
         self.hovering = hovering
         self.background_color = background_color
+        self.margin = 2
 
     def update_size_and_position(self, frame_list):
-        for frame in frame_list:
-            if frame.get_id() != self.id:
-                pass
+        if self.dynamic_size == True:
+            max_x = self.parent_window_size[0]
+            max_y = self.parent_window_size[1]
+            if self.dynamic_fill_y:
+                for frame in frame_list:
+                    if frame.get_id() != self.id:
+                        frame_pos = frame.get_position()                                                  
+                        if frame_pos[1] < max_y and self.is_frame_facing(frame, "y"):
+                            max_y = frame_pos[1]
+                self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
+                for frame in frame_list:
+                    if frame.get_id() != self.id:
+                        frame_pos = frame.get_position()                       
+                        if frame_pos[0] < max_x and self.is_frame_facing(frame, "x"):
+                            max_x = frame_pos[0]
+                self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
+            else:
+                for frame in frame_list:
+                    if frame.get_id() != self.id:
+                        frame_pos = frame.get_position()                       
+                        if frame_pos[0] < max_x and self.is_frame_facing(frame, "x"):
+                            max_x = frame_pos[0]
+                        self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
+                for frame in frame_list:
+                    if frame.get_id() != self.id:
+                        frame_pos = frame.get_position()            
+                        if frame_pos[1] < max_y and self.is_frame_facing(frame, "y"):
+                            max_y = frame_pos[1]
+                self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
+
+    
+    def is_frame_facing(self, frame, direction = "x"):
+        frame_position = frame.get_position()
+        frame_size = frame.get_size()
+        print(frame_position, frame_size)
+        if direction == "x":
+            if self.position[1] >= frame_position[1] and self.position[1] <= frame_position[1] + frame_size[1]:
+                return True
+            if self.position[1] + self.size[1] >= frame_position[1] and self.position[1] + self.size[1] <= frame_position[1] + frame_size[1]:
+                return True
+            if self.position[1] < frame_position[1] and self.position[1] + self.size[1] > frame_position[1] + frame_size[1]:
+                return True
+            return False
+        elif direction == "y":
+            if self.position[0] >= frame_position[0] and self.position[0] <= frame_position[0] + frame_size[0]:
+                return True
+            if self.position[0] + self.size[0] >= frame_position[0] and self.position[0] + self.size[0] <= frame_position[0] + frame_size[0]:
+                return True
+            if self.position[0] < frame_position[0] and self.position[0] + self.size[0] > frame_position[0] + frame_size[0]:
+                return True
+            return False
+        else:
+            raise AttributeError(direction)
+
 
     def display(self, frame_list):
         self.update_size_and_position(frame_list)
         if self.background_color is not None:
             pygame.draw.rect(self.parent_window, self.background_color, (*self.position, *self.size), 0)
         pygame.draw.rect(self.parent_window, (0, 0, 0), (*self.position, *self.size), 2) # borders
+        # pygame.draw.rect(self.parent_window, (0, 255, 0), (*self.position, 4,4), 0) # debug purpose
         self.extra_display()
 
     def extra_display(self):
@@ -59,15 +113,50 @@ class Frame(object):
         x = (pos[0] + self.position[0])
         y = (pos[1] + self.position[1])
         return (x, y)
+    
+    def get_position(self):
+        return self.position
+
+    def get_size(self):
+        return self.size
 
 
 class Container(Frame):
-    def __init__(self, parent_window, position=(0,0), size=(200,100), dynamic_size=False, dynamic_pos=False, hovering=False, background_color=(255,255,255)):
+    def __init__(self, parent_window, position=(0,0), size=(200,100), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=(255,255,255)):
         super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_pos=dynamic_pos, hovering=hovering, background_color=background_color)
         self.list_frames = []
 
     def add_frame(self, frame):
         self.list_frames.append(frame)
+
+class TextFrame(Frame):
+    def __init__(self, parent_window, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=None, text_color = (255, 255, 255)):
+        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_pos=dynamic_pos, hovering=hovering, background_color=background_color)
+        self.text_color = text_color
+        self.text = ""
+    
+    def print_text(self, text):
+        myfont = pygame.font.SysFont("freemono", 14)
+        label = myfont.render(text, 1, self.text_color)
+        self.parent_window.blit(label, self.pos_frame_to_screen((10, 10)))
+
+class ModeFrame(TextFrame):
+    def __init__(self, parent_window, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=BACKGROUND_COLOR, text_color = (255, 255, 255)):
+        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_pos=dynamic_pos, hovering=hovering, background_color=background_color, text_color=text_color)
+        self.current_mode = StratApp.NORMAL
+    
+    def extra_display(self):
+        if self.current_mode == StratApp.NORMAL:
+            self.print_text("NORMAL")
+        elif self.current_mode == StratApp.EDIT_PATH:
+            self.print_text("EDIT PATH")
+        elif self.current_mode == StratApp.RENDER_PATH:
+            self.print_text("RENDER PATH")
+        elif self.current_mode == StratApp.TEST_PATHFINDING:
+            self.print_text("TEST PATHFINDING")
+
+    def set_current_mode(self, current_mode):
+        self.current_mode = current_mode
 
 class Robot(object):
     def __init__(self, width_mm=30, lenght_mm=30):
@@ -201,7 +290,8 @@ class StratApp(object):
         self.waypoints_pathfinding = []
         self.path_pathfinding = []
 
-        self.frame_list = [self.board]
+        self.mode_frame = ModeFrame(self.fenetre, position=(2,2), dynamic_size=True, background_color=(255, 204, 0) , text_color = (0,0,0))
+        self.frame_list = [self.board, self.mode_frame]
 
     def run(self):
         clock = pygame.time.Clock()
@@ -228,6 +318,7 @@ class StratApp(object):
             if event.key == pygame.K_r:
                 self.mode = StratApp.RENDER_PATH
                 self.render_path()
+            self.mode_frame.set_current_mode(self.mode)
         elif event.type == MOUSEBUTTONDOWN:
             if event.button == 1:
                 if self.mode == StratApp.EDIT_PATH:
