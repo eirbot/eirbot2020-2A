@@ -20,6 +20,7 @@ class Frame(object):
         self.id = Frame.COUNT
         Frame.COUNT += 1
         self.parent_window = parent_window
+        self.parent_window_size = pygame.display.get_surface().get_size()
         self.position = position
         self.size = size
         self.dynamic_size = dynamic_size
@@ -27,17 +28,20 @@ class Frame(object):
         self.hovering = hovering
         self.background_color = background_color
 
-    def _update(self, frame_list):
+    def update_size_and_position(self, frame_list):
         for frame in frame_list:
             if frame.get_id() != self.id:
                 pass
 
     def display(self, frame_list):
-        self._update(frame_list)
-        pygame.draw.rect(self.parent_window, self.background_color, (*self.position, *self.size), 0)
+        self.update_size_and_position(frame_list)
+        pygame.draw.rect(self.parent_window, self.background_color, (*self.position, *self.size), 2)
 
     def get_id(self):
         return self.id
+    
+    def update_parent_window_size(self, size):
+        self.parent_window_size = size
     
 
 
@@ -53,9 +57,9 @@ class Robot(object):
         pass
 
 
-class BoardApp(object):
+class BoardApp(Frame):
     def __init__(self, parent_window):
-        self.fenetre = parent_window
+        Frame.__init__(self, parent_window)
         self.real_x, self.real_y = (300, 200)  # En cm
         self.board = pp.Field(self.real_x * 10, self.real_x * 10, 200)
         self.add_list_obstacles(DEFAULT_LIST_OBSTACLE)
@@ -67,21 +71,18 @@ class BoardApp(object):
         self.board_size_y = 0
         self.board_pos_x = 0
         self.board_pos_y = 0
-        self.display()
 
-    def display(self, w_size=None):
-        if w_size is None:
-            window_x, window_y = pygame.display.get_surface().get_size()
-        else:
-            window_x, window_y = w_size
+    def display(self, frame_list, w_size=None):
+        super().display(frame_list)
+        window_x, window_y = self.parent_window_size
         self.board_size_x = int(window_x * 0.80)
         self.board_size_y = int(self.board_size_x * BOARD_RATIO_X_TO_Y)
         self.board_pos_x = int((window_x-self.board_size_x)/2)
         self.board_pos_y = int((window_y-self.board_size_y)/2)
         board = pygame.transform.scale(
             self.raw_board, (self.board_size_x, self.board_size_y))
-        self.fenetre.fill(BACKGROUND_COLOR)
-        self.fenetre.blit(board, (self.board_pos_x, self.board_pos_y))
+        self.parent_window.fill(BACKGROUND_COLOR)
+        self.parent_window.blit(board, (self.board_pos_x, self.board_pos_y))
         self.display_obstacles()
 
     def add_list_obstacles(self, obstacle):
@@ -110,7 +111,7 @@ class BoardApp(object):
         resized_width = round(obstacle.dim.width*self.board_size_x/self.real_x)
         resized_height = round(obstacle.dim.height *
                                self.board_size_y/self.real_y)
-        pygame.draw.rect(self.fenetre, (100, 20, 20), (x-math.floor(resized_width/2)+1,
+        pygame.draw.rect(self.parent_window, (100, 20, 20), (x-math.floor(resized_width/2)+1,
                                                        y-math.floor(resized_height/2)+1, resized_width, resized_height), 0)
 
     def print_nodes(self, nodes):
@@ -120,7 +121,7 @@ class BoardApp(object):
     def print_node(self, node):
         x = round(self.board_pos_x + node.x*self.board_size_x/self.real_x)
         y = round(self.board_pos_y + node.y*self.board_size_y/self.real_y)
-        pygame.draw.rect(self.fenetre, (255, 100, 255), (x-3, y-3, 5, 5), 0)
+        pygame.draw.rect(self.parent_window, (255, 100, 255), (x-3, y-3, 5, 5), 0)
 
     def print_waypoints(self, waypoints):
         for wp in waypoints:
@@ -129,7 +130,7 @@ class BoardApp(object):
     def print_waypoint(self, wp):
         x = round(self.board_pos_x + wp[0]*self.board_size_x/self.real_x)
         y = round(self.board_pos_y + wp[1]*self.board_size_y/self.real_y)
-        pygame.draw.circle(self.fenetre, (19, 191, 97), (x, y),
+        pygame.draw.circle(self.parent_window, (19, 191, 97), (x, y),
                            round(4 * self.board_size_x/self.real_x), 0)
 
     def pathfinding(self, start, end):
@@ -167,7 +168,7 @@ class StratApp(object):
         self.waypoints_pathfinding = []
         self.path_pathfinding = []
 
-        self.frame_list = [Frame(self.fenetre)]
+        self.frame_list = [self.board]
 
     def run(self):
         clock = pygame.time.Clock()
@@ -182,8 +183,8 @@ class StratApp(object):
         if event.type == QUIT:  # Si un de ces événements est de type QUIT
             self.running = 0  # On arrête la boucle
         elif event.type == VIDEORESIZE:
-            self.last_wsize = event.size
-            self.board.display(event.size)
+            for frame in self.frame_list:
+                frame.update_parent_window_size(event.size)
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE or event.key == K_n:
                 self.mode = StratApp.NORMAL
@@ -204,7 +205,6 @@ class StratApp(object):
                     self.revert_path()
 
     def display(self):
-        self.board.display(self.last_wsize)
         self.update_frames()
         if self.mode == StratApp.EDIT_PATH:
             self.board.print_waypoints(self.constructed_path)
