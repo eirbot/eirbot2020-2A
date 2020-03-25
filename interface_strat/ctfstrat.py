@@ -31,40 +31,42 @@ class Frame(object):
 
     def update_size_and_position(self, frame_list):
         if self.dynamic_size == True:
-            max_x = self.parent_window_size[0]
-            max_y = self.parent_window_size[1]
-            if self.dynamic_fill_y:
-                for frame in frame_list:
-                    if frame.get_id() != self.id:
-                        frame_pos = frame.get_position()                                                  
-                        if frame_pos[1] < max_y and self.is_frame_facing(frame, "y"):
-                            max_y = frame_pos[1]
-                self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
-                for frame in frame_list:
-                    if frame.get_id() != self.id:
-                        frame_pos = frame.get_position()                       
-                        if frame_pos[0] < max_x and self.is_frame_facing(frame, "x"):
-                            max_x = frame_pos[0]
-                self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
-            else:
-                for frame in frame_list:
-                    if frame.get_id() != self.id:
-                        frame_pos = frame.get_position()                       
-                        if frame_pos[0] < max_x and self.is_frame_facing(frame, "x"):
-                            max_x = frame_pos[0]
-                        self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
-                for frame in frame_list:
-                    if frame.get_id() != self.id:
-                        frame_pos = frame.get_position()            
-                        if frame_pos[1] < max_y and self.is_frame_facing(frame, "y"):
-                            max_y = frame_pos[1]
-                self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
+            self.compute_dynamic_size(frame_list)
+
+    def compute_dynamic_size(self, frame_list):
+        max_x = self.parent_window_size[0]
+        max_y = self.parent_window_size[1]
+        if self.dynamic_fill_y:
+            for frame in frame_list:
+                if frame.get_id() != self.id:
+                    frame_pos = frame.get_position()                                                  
+                    if frame_pos[1] < max_y and self.is_frame_facing(frame, "y"):
+                        max_y = frame_pos[1]
+            self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
+            for frame in frame_list:
+                if frame.get_id() != self.id:
+                    frame_pos = frame.get_position()                       
+                    if frame_pos[0] < max_x and self.is_frame_facing(frame, "x"):
+                        max_x = frame_pos[0]
+            self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
+        else:
+            for frame in frame_list:
+                if frame.get_id() != self.id:
+                    frame_pos = frame.get_position()                       
+                    if frame_pos[0] < max_x and self.is_frame_facing(frame, "x"):
+                        max_x = frame_pos[0]
+                    self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
+            for frame in frame_list:
+                if frame.get_id() != self.id:
+                    frame_pos = frame.get_position()            
+                    if frame_pos[1] < max_y and self.is_frame_facing(frame, "y"):
+                        max_y = frame_pos[1]
+            self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
 
     
     def is_frame_facing(self, frame, direction = "x"):
         frame_position = frame.get_position()
         frame_size = frame.get_size()
-        print(frame_position, frame_size)
         if direction == "x":
             if self.position[1] >= frame_position[1] and self.position[1] <= frame_position[1] + frame_size[1]:
                 return True
@@ -183,8 +185,10 @@ class BoardApp(Frame):
         window_x, window_y = self.parent_window_size
         board_ratio_x_to_y = 2/3
         board_screen_ratio = 0.7
-        self.size = (int(window_x * board_screen_ratio), int(window_x * board_screen_ratio * board_ratio_x_to_y))
         self.position = (int((window_x-self.size[0])/2), int((window_y-self.size[1])/2))
+        self.size = (int(window_x * board_screen_ratio), int(window_x * board_screen_ratio * board_ratio_x_to_y))
+        super().compute_dynamic_size(frame_list)
+        
     
     def extra_display(self):
 
