@@ -5,7 +5,6 @@ import pypath as pp  # pypath-fpa
 import math
 
 BACKGROUND_COLOR = (33, 33, 33)
-BOARD_RATIO_X_TO_Y = 2/3
 
 DEFAULT_LIST_OBSTACLE = [pp.Rectangle(pp.Coordinates(60, 20), pp.Size(2, 40)),
                          pp.Rectangle(pp.Coordinates(
@@ -16,7 +15,7 @@ DEFAULT_LIST_OBSTACLE = [pp.Rectangle(pp.Coordinates(60, 20), pp.Size(2, 40)),
 
 class Frame(object):
     COUNT = 0
-    def __init__(self, parent_window, position=(0, 0), size=(100, 70), dynamic_size=False, dynamic_pos=False, hovering=False, background_color=(255,255,255)):
+    def __init__(self, parent_window, position=(0, 0), size=(100, 70), dynamic_size=False, dynamic_pos=False, hovering=False, background_color=None):
         self.id = Frame.COUNT
         Frame.COUNT += 1
         self.parent_window = parent_window
@@ -35,7 +34,13 @@ class Frame(object):
 
     def display(self, frame_list):
         self.update_size_and_position(frame_list)
-        pygame.draw.rect(self.parent_window, self.background_color, (*self.position, *self.size), 2)
+        if self.background_color is not None:
+            pygame.draw.rect(self.parent_window, self.background_color, (*self.position, *self.size), 0)
+        pygame.draw.rect(self.parent_window, (0, 0, 0), (*self.position, *self.size), 2) # borders
+        self.extra_display()
+
+    def extra_display(self):
+        pass
 
     def get_id(self):
         return self.id
@@ -43,10 +48,26 @@ class Frame(object):
     def update_parent_window_size(self, size):
         self.parent_window_size = size
     
+    def pos_screen_to_frame(self, pos):
+        x = (pos[0] - self.position[0])
+        y = (pos[1] - self.position[1])
+        if x < 0 or y < 0 or x >= self.size[0] or y >= self.size[1]:
+            return None
+        return (x, y)
+
+    def pos_frame_to_screen(self, pos):
+        x = (pos[0] + self.position[0])
+        y = (pos[1] + self.position[1])
+        return (x, y)
 
 
+class Container(Frame):
+    def __init__(self, parent_window, position=(0,0), size=(200,100), dynamic_size=False, dynamic_pos=False, hovering=False, background_color=(255,255,255)):
+        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_pos=dynamic_pos, hovering=hovering, background_color=background_color)
+        self.list_frames = []
 
-
+    def add_frame(self, frame):
+        self.list_frames.append(frame)
 
 class Robot(object):
     def __init__(self, width_mm=30, lenght_mm=30):
@@ -60,29 +81,28 @@ class Robot(object):
 class BoardApp(Frame):
     def __init__(self, parent_window):
         Frame.__init__(self, parent_window)
-        self.real_x, self.real_y = (300, 200)  # En cm
-        self.board = pp.Field(self.real_x * 10, self.real_x * 10, 200)
+        self.real_size = (300, 200)  # En cm
+        self.board = pp.Field(self.real_size[0] * 10, self.real_size[1] * 10, 200)
         self.add_list_obstacles(DEFAULT_LIST_OBSTACLE)
         self.astar = pp.Castar()
         board_path = Path("ressources/board_1920_1280.png").absolute()
         file = open(board_path, 'r')
         self.raw_board = pygame.image.load(file).convert()
-        self.board_size_x = 0
-        self.board_size_y = 0
-        self.board_pos_x = 0
-        self.board_pos_y = 0
 
-    def display(self, frame_list, w_size=None):
-        super().display(frame_list)
+
+    def update_size_and_position(self, frame_list):
         window_x, window_y = self.parent_window_size
-        self.board_size_x = int(window_x * 0.80)
-        self.board_size_y = int(self.board_size_x * BOARD_RATIO_X_TO_Y)
-        self.board_pos_x = int((window_x-self.board_size_x)/2)
-        self.board_pos_y = int((window_y-self.board_size_y)/2)
+        board_ratio_x_to_y = 2/3
+        board_screen_ratio = 0.7
+        self.size = (int(window_x * board_screen_ratio), int(window_x * board_screen_ratio * board_ratio_x_to_y))
+        self.position = (int((window_x-self.size[0])/2), int((window_y-self.size[1])/2))
+    
+    def extra_display(self):
+
         board = pygame.transform.scale(
-            self.raw_board, (self.board_size_x, self.board_size_y))
+            self.raw_board, self.size)
         self.parent_window.fill(BACKGROUND_COLOR)
-        self.parent_window.blit(board, (self.board_pos_x, self.board_pos_y))
+        self.parent_window.blit(board, self.position)
         self.display_obstacles()
 
     def add_list_obstacles(self, obstacle):
@@ -103,14 +123,8 @@ class BoardApp(Frame):
             self.print_obstacle(obstacle)
 
     def print_obstacle(self, obstacle):
-        x = round(self.board_pos_x + obstacle.pos.x *
-                  self.board_size_x/self.real_x)
-        y = round(self.board_pos_y + obstacle.pos.y *
-                  self.board_size_y/self.real_y)
-
-        resized_width = round(obstacle.dim.width*self.board_size_x/self.real_x)
-        resized_height = round(obstacle.dim.height *
-                               self.board_size_y/self.real_y)
+        x, y = self.pos_board_to_screen((obstacle.pos.x, obstacle.pos.y))
+        resized_width, resized_height = self.size_board_to_screen((obstacle.dim.width, obstacle.dim.height))
         pygame.draw.rect(self.parent_window, (100, 20, 20), (x-math.floor(resized_width/2)+1,
                                                        y-math.floor(resized_height/2)+1, resized_width, resized_height), 0)
 
@@ -119,19 +133,18 @@ class BoardApp(Frame):
             self.print_node(node)
 
     def print_node(self, node):
-        x = round(self.board_pos_x + node.x*self.board_size_x/self.real_x)
-        y = round(self.board_pos_y + node.y*self.board_size_y/self.real_y)
-        pygame.draw.rect(self.parent_window, (255, 100, 255), (x-3, y-3, 5, 5), 0)
+        x, y = self.pos_board_to_screen((node.x, node.y))
+        node_size = self.size_board_to_screen(1)
+        pygame.draw.rect(self.parent_window, (255, 100, 255), (x-3, y-3, node_size, node_size), 0)
 
     def print_waypoints(self, waypoints):
         for wp in waypoints:
             self.print_waypoint(wp)
 
     def print_waypoint(self, wp):
-        x = round(self.board_pos_x + wp[0]*self.board_size_x/self.real_x)
-        y = round(self.board_pos_y + wp[1]*self.board_size_y/self.real_y)
+        x, y = self.pos_board_to_screen(wp)
         pygame.draw.circle(self.parent_window, (19, 191, 97), (x, y),
-                           round(4 * self.board_size_x/self.real_x), 0)
+                           self.size_board_to_screen(4), 0)
 
     def pathfinding(self, start, end):
         err, list_nodes = self.astar.find_path(start, end, self.board)
@@ -140,13 +153,32 @@ class BoardApp(Frame):
             return
         return list_nodes
 
-    def convert_screen_pos_to_board_pos(self, point):
-        x = round((point[0] - self.board_pos_x)*self.real_x/self.board_size_x)
-        y = round((point[1] - self.board_pos_y)*self.real_y/self.board_size_y)
-        if x < 0 or y < 0 or x >= self.real_x or y >= self.real_y:
-            return None
-        return (x, y)
+    def pos_board_to_frame(self, pos):
+        return (round(pos[0]*self.size[0]/self.real_size[0]),
+            round(pos[1]*self.size[1]/self.real_size[1]))
 
+    def pos_frame_to_board(self, pos):
+        return (round(pos[0]*self.real_size[0]/self.size[0]),
+            round(pos[1]*self.real_size[1]/self.size[1]))
+    
+    def pos_screen_to_board(self, pos):
+        rt = self.pos_screen_to_frame(pos)
+        if rt is None:
+            return None
+        return self.pos_frame_to_board(rt)
+    
+    def pos_board_to_screen(self, pos):
+        return self.pos_frame_to_screen(self.pos_board_to_frame(pos))
+    
+    def size_board_to_screen(self, size):
+        if isinstance(size, tuple):
+            return (round(size[0]*self.size[0]/self.real_size[0]),
+                round(size[1]*self.size[1]/self.real_size[1]))
+        return round(size*self.size[0]/self.real_size[0])
+
+    def size_screen_to_board(self, size):
+        return (round(size[0]*self.real_size[0]/self.size[0]),
+            round(size[1]*self.real_size[1]/self.size[1]))
 
 class StratApp(object):
     NORMAL = 0
@@ -216,7 +248,7 @@ class StratApp(object):
             frame.display(self.frame_list)
 
     def construct_path(self, mouse_pos):
-        converted_pos = self.board.convert_screen_pos_to_board_pos(mouse_pos)
+        converted_pos = self.board.pos_screen_to_board(mouse_pos)
         if converted_pos is not None:
             self.constructed_path.append(converted_pos)
 
@@ -225,7 +257,7 @@ class StratApp(object):
             self.constructed_path.pop()
 
     def push_waypoint_pathfinding(self, wp):
-        converted_pos = self.board.convert_screen_pos_to_board_pos(wp)
+        converted_pos = self.board.pos_screen_to_board(wp)
         if converted_pos is not None:
             if len(self.waypoints_pathfinding) >= 2:
                 self.waypoints_pathfinding.pop(0)
