@@ -5,6 +5,7 @@ import pypath as pp  # pypath-fpa
 import math
 
 BACKGROUND_COLOR = (33, 33, 33)
+FPS = 144
 
 DEFAULT_LIST_OBSTACLE = [pp.Rectangle(pp.Coordinates(60, 20), pp.Size(2, 40)),
                          pp.Rectangle(pp.Coordinates(
@@ -15,11 +16,14 @@ DEFAULT_LIST_OBSTACLE = [pp.Rectangle(pp.Coordinates(60, 20), pp.Size(2, 40)),
 
 class Frame(object):
     COUNT = 0
-    def __init__(self, parent_window, position=(0, 0), size=(10, 10), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=None):
+    def __init__(self, parent_window, position=(0, 0), size=(10, 10), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=None, margin=0):
         self.id = Frame.COUNT
         Frame.COUNT += 1
         self.parent_window = parent_window
         self.parent_window_size = pygame.display.get_surface().get_size()
+        self.parent_window_position = (0,0)
+        self.percent_position = position
+        self.percent_size = size
         self.position = position
         self.size = size
         self.dynamic_size = dynamic_size
@@ -27,40 +31,62 @@ class Frame(object):
         self.dynamic_pos = dynamic_pos
         self.hovering = hovering
         self.background_color = background_color
-        self.margin = 2
+        self.margin = margin
+
+
+
+    def update_position(self):
+        self.position = (int(self.percent_position[0]*self.parent_window_size[0]/100)+self.parent_window_position[0],
+            int(self.percent_position[1]*self.parent_window_size[1]/100)+self.parent_window_position[1])
+    
+    def update_size(self):
+        self.size = (int(self.percent_size[0]/100 *self.parent_window_size[0]),
+            int(self.percent_size[1]/100 *self.parent_window_size[1]))
 
     def update_size_and_position(self, frame_list):
+        self.update_position()
         if self.dynamic_size == True:
-            self.compute_dynamic_size(frame_list)
+            if isinstance(frame_list, list):
+                self.compute_dynamic_size(frame_list)
+            else:
+                raise AttributeError(frame_list)
+        else:
+            self.update_position()
 
     def compute_dynamic_size(self, frame_list):
+        self.size = (10,10)
         max_x = self.parent_window_size[0]
         max_y = self.parent_window_size[1]
+
         if self.dynamic_fill_y:
             for frame in frame_list:
                 if frame.get_id() != self.id:
-                    frame_pos = frame.get_position()                                                  
-                    if frame_pos[1] < max_y and self.is_frame_facing(frame, "y"):
-                        max_y = frame_pos[1]
+                    frame_pos = frame.get_position()    
+                    frame_size = frame.get_size()                                              
+                    if frame_pos[1] < max_y and frame_pos[1] + frame_size[1] > self.position[1] and self.is_frame_facing(frame, "y"):
+                        max_y = frame_pos[1]-1
             self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
             for frame in frame_list:
                 if frame.get_id() != self.id:
-                    frame_pos = frame.get_position()                       
-                    if frame_pos[0] < max_x and self.is_frame_facing(frame, "x"):
-                        max_x = frame_pos[0]
+                    frame_pos = frame.get_position()  
+                    frame_size = frame.get_size()                     
+                    if frame_pos[0] < max_x and frame_pos[0] + frame_size[0] > self.position[0] and self.is_frame_facing(frame, "x"):
+                        max_x = frame_pos[0]-1
             self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
         else:
             for frame in frame_list:
                 if frame.get_id() != self.id:
-                    frame_pos = frame.get_position()                       
-                    if frame_pos[0] < max_x and self.is_frame_facing(frame, "x"):
-                        max_x = frame_pos[0]
+                    frame_pos = frame.get_position()
+                    frame_size = frame.get_size()                       
+                    if frame_pos[0] < max_x and frame_pos[0] + frame_size[0] > self.position[0]  and self.is_frame_facing(frame, "x"):
+                        max_x = frame_pos[0]-1
                     self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
             for frame in frame_list:
                 if frame.get_id() != self.id:
-                    frame_pos = frame.get_position()            
-                    if frame_pos[1] < max_y and self.is_frame_facing(frame, "y"):
-                        max_y = frame_pos[1]
+                    frame_pos = frame.get_position()    
+                    frame_size = frame.get_size()        
+                    if frame_pos[1] < max_y and frame_pos[1] + frame_size[1] > self.position[1] and self.is_frame_facing(frame, "y"):
+                        max_y = frame_pos[1]-1
             self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
 
     
@@ -101,8 +127,9 @@ class Frame(object):
     def get_id(self):
         return self.id
     
-    def update_parent_window_size(self, size):
+    def update_parent_window_infos(self, size, position=(0,0)):
         self.parent_window_size = size
+        self.parent_window_position = position
     
     def pos_screen_to_frame(self, pos):
         x = (pos[0] - self.position[0])
@@ -121,6 +148,7 @@ class Frame(object):
 
     def get_size(self):
         return self.size
+    
 
 
 class Container(Frame):
@@ -130,6 +158,20 @@ class Container(Frame):
 
     def add_frame(self, frame):
         self.list_frames.append(frame)
+    
+    def extra_display(self):
+        for frame in self.list_frames:
+            frame.update_parent_window_infos(self.size, self.position)
+        for frame in self.list_frames:
+            frame.display(self.list_frames)
+    
+    def update_parent_window_infos(self, size, position=(0,0)):
+        super().update_parent_window_infos(size, position)
+        for frame in self.list_frames:
+            frame.update_parent_window_infos(self.size, self.position)
+    
+    def delete_frame(self, frame):
+        self.list_frames.remove(frame)
 
 class TextFrame(Frame):
     def __init__(self, parent_window, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=None, text_color = (255, 255, 255)):
@@ -160,14 +202,6 @@ class ModeFrame(TextFrame):
     def set_current_mode(self, current_mode):
         self.current_mode = current_mode
 
-class Robot(object):
-    def __init__(self, width_mm=30, lenght_mm=30):
-        self.width = width_mm
-        self.lenght = lenght_mm
-
-    def display(self):
-        pass
-
 
 class BoardApp(Frame):
     def __init__(self, parent_window):
@@ -187,7 +221,6 @@ class BoardApp(Frame):
         board_screen_ratio = 0.7
         self.position = (int((window_x-self.size[0])/2), int((window_y-self.size[1])/2))
         self.size = (int(window_x * board_screen_ratio), int(window_x * board_screen_ratio * board_ratio_x_to_y))
-        super().compute_dynamic_size(frame_list)
         
     
     def extra_display(self):
@@ -294,13 +327,18 @@ class StratApp(object):
         self.waypoints_pathfinding = []
         self.path_pathfinding = []
 
-        self.mode_frame = ModeFrame(self.fenetre, position=(2,2), dynamic_size=True, background_color=(255, 204, 0) , text_color = (0,0,0))
-        self.frame_list = [self.board, self.mode_frame]
+        self.mode_frame = ModeFrame(self.fenetre, position=(0,0), dynamic_size=True, background_color=(255, 204, 0), text_color = (0,0,0))
+        self.info_frame = ModeFrame(self.fenetre, position=(50,0), dynamic_size=True, background_color=(77, 166, 255), text_color = (0,0,0))
+        self.top_container = Container(self.fenetre,position=(20,2), dynamic_size=True,background_color=(42, 36, 36))
+        self.top_container.add_frame(self.mode_frame)
+        self.top_container.add_frame(self.info_frame)
+        self.right_container = Container(self.fenetre,position=(90,2), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
+        self.frame_list = [self.board, self.top_container, self.right_container]
 
     def run(self):
         clock = pygame.time.Clock()
         while self.running:
-            clock.tick(144)
+            clock.tick(FPS)
             for event in pygame.event.get():  # On parcours la liste de tous les événements reçus
                 self.event_handler(event)
             self.display()
@@ -311,7 +349,7 @@ class StratApp(object):
             self.running = 0  # On arrête la boucle
         elif event.type == VIDEORESIZE:
             for frame in self.frame_list:
-                frame.update_parent_window_size(event.size)
+                frame.update_parent_window_infos(event.size)
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE or event.key == K_n:
                 self.mode = StratApp.NORMAL
@@ -393,6 +431,13 @@ class StratApp(object):
                 self.path_pathfinding.extend(returned_value)
 
 
+class Robot(object):
+    def __init__(self, width_mm=30, lenght_mm=30):
+        self.width = width_mm
+        self.lenght = lenght_mm
+
+    def display(self):
+        pass
 
 
 
