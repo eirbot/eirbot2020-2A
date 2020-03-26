@@ -40,8 +40,7 @@ class Frame(object):
             int(self.percent_position[1]*self.parent_window_size[1]/100)+self.parent_window_position[1])
     
     def update_size(self):
-        self.size = (int(self.percent_size[0]/100 *self.parent_window_size[0]),
-            int(self.percent_size[1]/100 *self.parent_window_size[1]))
+        self.size = size_frame_to_screen(self, self.percent_size)
 
     def update_size_and_position(self, frame_list):
         self.update_position()
@@ -143,6 +142,12 @@ class Frame(object):
         y = (pos[1] + self.position[1])
         return (x, y)
     
+    def size_frame_to_screen(self, size):
+        if isinstance(size, tuple):
+            return (int(size[0]/100 *self.parent_window_size[0]),
+                int(size[1]/100 *self.parent_window_size[1]))
+        return int(size *self.parent_window_size[0]/100)
+    
     def get_position(self):
         return self.position
 
@@ -177,12 +182,20 @@ class TextFrame(Frame):
     def __init__(self, parent_window, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=None, text_color = (255, 255, 255)):
         super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_pos=dynamic_pos, hovering=hovering, background_color=background_color)
         self.text_color = text_color
-        self.text = ""
     
     def print_text(self, text):
-        myfont = pygame.font.SysFont("freemono", 14)
+        myfont = pygame.font.SysFont("freemono", self.size_frame_to_screen(2))
         label = myfont.render(text, 1, self.text_color)
         self.parent_window.blit(label, self.pos_frame_to_screen((10, 10)))
+
+class PermanantTextFrame(TextFrame):
+    def __init__(self, parent_window, text, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=None, text_color=(255,255,255)):
+        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_fill_y=dynamic_fill_y, dynamic_pos=dynamic_pos, hovering=hovering, background_color=background_color, text_color=text_color)
+        self.text = text
+    
+    def extra_display(self):
+        self.print_text(self.text)
+
 
 class ModeFrame(TextFrame):
     def __init__(self, parent_window, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=BACKGROUND_COLOR, text_color = (255, 255, 255)):
@@ -328,7 +341,7 @@ class StratApp(object):
         self.path_pathfinding = []
 
         self.mode_frame = ModeFrame(self.fenetre, position=(0,0), dynamic_size=True, background_color=(255, 204, 0), text_color = (0,0,0))
-        self.info_frame = ModeFrame(self.fenetre, position=(50,0), dynamic_size=True, background_color=(77, 166, 255), text_color = (0,0,0))
+        self.info_frame = PermanantTextFrame(self.fenetre,"Some kind of info \r OUI" , position=(50,0), dynamic_size=True, background_color=(77, 166, 255), text_color = (0,0,0))
         self.top_container = Container(self.fenetre,position=(20,2), dynamic_size=True,background_color=(42, 36, 36))
         self.top_container.add_frame(self.mode_frame)
         self.top_container.add_frame(self.info_frame)
