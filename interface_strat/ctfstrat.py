@@ -39,7 +39,8 @@ class Frame(object):
                 (int(self.percent_position[1]*self.parent_window_size[1]/100)+self.parent_window_position[1]))
     
     def update_size(self):
-        self.size = size_frame_to_screen(self.percent_size)
+        self.size = (max(int(self.percent_size[0]/100 *self.parent_window_size[0]), 0),
+                    max(int(self.percent_size[1]/100 *self.parent_window_size[1]), 0))
 
     def update_size_and_position(self, frame_list):
         self.update_position()
@@ -52,7 +53,7 @@ class Frame(object):
             self.update_size()
 
     def compute_dynamic_size(self, frame_list):
-        self.size = (10,10)
+        self.size = (1,1)
         max_x = self.parent_window_size[0] + self.parent_window_position[0]
         max_y = self.parent_window_size[1] + self.parent_window_position[1]
 
@@ -90,26 +91,26 @@ class Frame(object):
         frame_position = frame.get_position()
         frame_size = frame.get_size()
         if direction == "x":
-            if self.position[1] >= frame_position[1] and self.position[1] <= frame_position[1] + frame_size[1]:
+            if self.position[1] >= frame_position[1] and self.position[1] < frame_position[1] + frame_size[1]:
                 return True
             if self.position[1] + self.size[1] >= frame_position[1] and self.position[1] + self.size[1] <= frame_position[1] + frame_size[1]:
                 return True
-            if self.position[1] < frame_position[1] and self.position[1] + self.size[1] > frame_position[1] + frame_size[1]:
+            if self.position[1] <= frame_position[1] and self.position[1] + self.size[1] > frame_position[1] + frame_size[1]:
                 return True
             return False
         elif direction == "y":
-            if self.position[0] >= frame_position[0] and self.position[0] <= frame_position[0] + frame_size[0]:
+            if self.position[0] >= frame_position[0] and self.position[0] < frame_position[0] + frame_size[0]:
                 return True
             if self.position[0] + self.size[0] >= frame_position[0] and self.position[0] + self.size[0] <= frame_position[0] + frame_size[0]:
                 return True
-            if self.position[0] < frame_position[0] and self.position[0] + self.size[0] > frame_position[0] + frame_size[0]:
+            if self.position[0] <= frame_position[0] and self.position[0] + self.size[0] > frame_position[0] + frame_size[0]:
                 return True
             return False
         else:
             raise AttributeError(direction)
 
 
-    def display(self, frame_list):
+    def display(self, frame_list=None):
         self.update_size_and_position(frame_list)
         if self.background_color is not None:
             pygame.draw.rect(self.parent_window, self.background_color, (*self.position, *self.size), 0)
@@ -163,12 +164,15 @@ class Frame(object):
 
 
 class Container(Frame):
-    def __init__(self, parent_window, position=(0,0), size=(200,100), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=(255,255,255)):
+    def __init__(self, parent_window, position=(0,0), size=(100,100), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=(255,255,255)):
         super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, hovering=hovering, background_color=background_color)
         self.list_frames = []
 
     def add_frame(self, frame):
-        self.list_frames.append(frame)
+        if isinstance(frame, list):
+            self.list_frames.extend(frame)
+        else:
+            self.list_frames.append(frame)
     
     def extra_display(self):
         for frame in self.list_frames:
@@ -237,9 +241,19 @@ class ModeFrame(TextFrame):
         self.current_mode = current_mode
 
 
-class BoardApp(Frame):
-    def __init__(self, parent_window):
-        Frame.__init__(self, parent_window)
+class FixedRatioFrame(Frame):
+    def __init__(self, parent_window, ratio_x_to_y=1, position=(0,0), size=(100,100), hovering=False, background_color=None, margin=0):
+        super().__init__(parent_window, position=position, size=size, dynamic_size=True, hovering=hovering, background_color=background_color, margin=margin)
+        self.ratio_x_to_y = ratio_x_to_y
+
+    def update_size_and_position(self, frame_list):
+        self.update_position()
+        self.compute_dynamic_size(frame_list)
+
+
+class BoardApp(FixedRatioFrame):
+    def __init__(self, parent_window, ratio_x_to_y=1, position=(0,0), size=(100,100), hovering=False, background_color=None, margin=0):
+        super().__init__(parent_window, ratio_x_to_y=ratio_x_to_y, position=position, size=size, hovering=hovering, background_color=background_color, margin=margin)
         self.real_size = (300, 200)  # En cm
         self.board = pp.Field(self.real_size[0] * 10, self.real_size[1] * 10, 200)
         self.add_list_obstacles(DEFAULT_LIST_OBSTACLE)
@@ -249,19 +263,10 @@ class BoardApp(Frame):
         self.raw_board = pygame.image.load(file).convert()
 
 
-    def update_size_and_position(self, frame_list):
-        window_x, window_y = self.parent_window_size
-        board_ratio_x_to_y = 2/3
-        board_screen_ratio = 0.7
-        self.position = (int((window_x-self.size[0])/2), int((window_y-self.size[1])/2))
-        self.size = (int(window_x * board_screen_ratio), int(window_x * board_screen_ratio * board_ratio_x_to_y))
-        
-    
-    def extra_display(self):
 
+    def extra_display(self):
         board = pygame.transform.scale(
             self.raw_board, self.size)
-        self.parent_window.fill(BACKGROUND_COLOR)
         self.parent_window.blit(board, self.position)
         self.display_obstacles()
 
@@ -353,9 +358,9 @@ class StratApp(object):
         pygame.init()
         self.main_window = pygame.display.set_mode(
             (1920, 1080), RESIZABLE | DOUBLEBUF)
-        self.main_window.fill(BACKGROUND_COLOR)
+        self.main_container = Container(self.main_window, size=(100,100), background_color=BACKGROUND_COLOR)
         self.running = 1
-        self.board = BoardApp(self.main_window)
+        self.board = BoardApp(self.main_window, ratio_x_to_y=2/3, position=(0,20))
         self.last_wsize = pygame.display.get_surface().get_size()
 
         self.constructed_path = []
@@ -366,11 +371,14 @@ class StratApp(object):
 
         self.mode_frame = ModeFrame(self.main_window, position=(0,0), dynamic_size=True, background_color=(255, 204, 0), text_color = (0,0,0))
         self.info_frame = PermanantTextFrame(self.main_window,"CTF STRAT \nEDITION 2020", position=(50,0), dynamic_size=True, background_color=(77, 166, 255), text_color = (0,0,0))
-        self.top_container = Container(self.main_window,position=(2,2), dynamic_size=True,background_color=(42, 36, 36))
+        self.top_container = Container(self.main_window,position=(0,0), size=(100,20), dynamic_size=False ,background_color=(42, 36, 36))
         self.top_container.add_frame(self.mode_frame)
         self.top_container.add_frame(self.info_frame)
-        self.right_container = Container(self.main_window,position=(90,2), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
-        self.frame_list = [self.board, self.top_container, self.right_container]
+        self.left_container = Container(self.main_window,position=(0,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
+        self.right_container = Container(self.main_window,position=(85,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
+        self.left_container.add_frame([self.top_container, self.board])
+        self.main_container.add_frame([self.left_container,self.right_container])
+
 
     def run(self):
         clock = pygame.time.Clock()
@@ -385,8 +393,7 @@ class StratApp(object):
         if event.type == QUIT:  # Si un de ces événements est de type QUIT
             self.running = 0  # On arrête la boucle
         elif event.type == VIDEORESIZE:
-            for frame in self.frame_list:
-                frame.update_parent_window_infos(event.size)
+            self.main_container.update_parent_window_infos(event.size)
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE or event.key == K_n:
                 self.mode = StratApp.NORMAL
@@ -411,15 +418,13 @@ class StratApp(object):
                     self.revert_path()
 
     def display(self):
-        self.update_frames()
+        self.main_container.display()
         if self.mode in [StratApp.EDIT_PATH, StratApp.RENDER_PATH]:
             self.board.print_waypoints(self.constructed_path)
         if self.mode in [StratApp.TEST_PATHFINDING, StratApp.RENDER_PATH]:
             self.board.print_nodes(self.path_pathfinding)
     
-    def update_frames(self):
-        for frame in self.frame_list:
-            frame.display(self.frame_list)
+
 
     def construct_path(self, mouse_pos):
         converted_pos = self.board.pos_screen_to_board(mouse_pos)
