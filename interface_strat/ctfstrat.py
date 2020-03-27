@@ -16,7 +16,7 @@ DEFAULT_LIST_OBSTACLE = [pp.Rectangle(pp.Coordinates(60, 20), pp.Size(2, 40)),
 
 class Frame(object):
     COUNT = 0
-    def __init__(self, parent_window, position=(0, 0), size=(10, 10), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=None, margin=0):
+    def __init__(self, parent_window, position=(0, 0), size=(100, 100), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=None, margin=0):
         self.id = Frame.COUNT
         Frame.COUNT += 1
         self.parent_window = parent_window
@@ -28,7 +28,6 @@ class Frame(object):
         self.size = size
         self.dynamic_size = dynamic_size
         self.dynamic_fill_y = dynamic_fill_y
-        self.dynamic_pos = dynamic_pos
         self.hovering = hovering
         self.background_color = background_color
         self.margin = margin
@@ -138,13 +137,19 @@ class Frame(object):
     
     def size_frame_to_screen(self, size):
         if isinstance(size, tuple):
-            return (int(size[0]/100 *self.size[0]),
-                int(size[1]/100 *self.size[1]))
-        return int(size *self.size[0]/100)
+            return (max(int(size[0]*100 /self.size[0]), 0),
+                    max(int(size[1]*100 /self.size[1]), 0))
+        return max(int(size *self.size[0]/100), 0)
+
+    def size_screen_to_frame(self, size):
+        if isinstance(size, tuple):
+            return (max(int(size[0]/100 *self.size[0]),0),
+                    max(int(size[1]/100 *self.size[1]),0))
+        return max(int(size/100 *self.size[0]), 0)
 
     def pos_frame_to_screen(self, pos):
-        return ((int(pos[0]*self.size[0]/100)+self.position[0]),
-                (int(pos[1]*self.size[1]/100)+self.position[1]))
+        return (max(int(pos[0]*self.size[0]/100)+self.position[0], 0),
+                max(int(pos[1]*self.size[1]/100)+self.position[1], 0))
     
     def get_position(self):
         return self.position
@@ -152,11 +157,14 @@ class Frame(object):
     def get_size(self):
         return self.size
     
+    def set_margin(self, margin):
+        self.margin = int(margin)
+    
 
 
 class Container(Frame):
-    def __init__(self, parent_window, position=(0,0), size=(200,100), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=(255,255,255)):
-        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_pos=dynamic_pos, hovering=hovering, background_color=background_color)
+    def __init__(self, parent_window, position=(0,0), size=(200,100), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=(255,255,255)):
+        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, hovering=hovering, background_color=background_color)
         self.list_frames = []
 
     def add_frame(self, frame):
@@ -175,20 +183,35 @@ class Container(Frame):
     
     def delete_frame(self, frame):
         self.list_frames.remove(frame)
+    
+    def set_inner_margin(self, margin):
+        for frame in self.list_frames:
+            frame.set_margin(margin)
 
 class TextFrame(Frame):
-    def __init__(self, parent_window, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=None, text_color = (255, 255, 255)):
-        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_pos=dynamic_pos, hovering=hovering, background_color=background_color)
+    def __init__(self, parent_window, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=None, text_color = (255, 255, 255)):
+        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, hovering=hovering, background_color=background_color)
         self.text_color = text_color
+        self.height_line_jump = 20 # static
+        self.font_size = 6 # percent
     
-    def print_text(self, text):
-        myfont = pygame.font.SysFont("freemono", self.size_frame_to_screen(6))
-        label = myfont.render(text, 1, self.text_color)
-        self.parent_window.blit(label, self.pos_frame_to_screen((2, 50)))
+    def print_text(self, text, centered=True):
+        screen_font_size = self.size_frame_to_screen(self.font_size)
+        screen_height_line_jump = int(self.height_line_jump * screen_font_size/25)
+        if centered:
+            line_pos_x, line_pos_y = self.pos_frame_to_screen((2, 50))
+            line_pos_y -= screen_height_line_jump * text.count("\n")
+        else:
+            line_pos_x, line_pos_y = self.pos_frame_to_screen((2, 2))
+        for line in text.split("\n"):
+            myfont = pygame.font.SysFont("freemono", screen_font_size)
+            label = myfont.render(line, 1, self.text_color)
+            self.parent_window.blit(label, (line_pos_x, line_pos_y))
+            line_pos_y += screen_height_line_jump
 
 class PermanantTextFrame(TextFrame):
-    def __init__(self, parent_window, text, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=None, text_color=(255,255,255)):
-        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_fill_y=dynamic_fill_y, dynamic_pos=dynamic_pos, hovering=hovering, background_color=background_color, text_color=text_color)
+    def __init__(self, parent_window, text, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=None, text_color=(255,255,255)):
+        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_fill_y=dynamic_fill_y, hovering=hovering, background_color=background_color, text_color=text_color)
         self.text = text
     
     def extra_display(self):
@@ -196,8 +219,8 @@ class PermanantTextFrame(TextFrame):
 
 
 class ModeFrame(TextFrame):
-    def __init__(self, parent_window, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=BACKGROUND_COLOR, text_color = (255, 255, 255)):
-        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_pos=dynamic_pos, hovering=hovering, background_color=background_color, text_color=text_color)
+    def __init__(self, parent_window, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=BACKGROUND_COLOR, text_color = (255, 255, 255)):
+        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, hovering=hovering, background_color=background_color, text_color=text_color)
         self.current_mode = StratApp.NORMAL
     
     def extra_display(self):
@@ -260,7 +283,7 @@ class BoardApp(Frame):
             self.print_obstacle(obstacle)
 
     def print_obstacle(self, obstacle):
-        x, y = self.pos_board_to_screen((obstacle.pos.x, obstacle.pos.y))
+        x, y = self.pos_frame_to_screen((obstacle.pos.x, obstacle.pos.y))
         resized_width, resized_height = self.size_board_to_screen((obstacle.dim.width, obstacle.dim.height))
         pygame.draw.rect(self.parent_window, (100, 20, 20), (x-math.floor(resized_width/2)+1,
                                                        y-math.floor(resized_height/2)+1, resized_width, resized_height), 0)
@@ -284,7 +307,9 @@ class BoardApp(Frame):
                            self.size_board_to_screen(4), 0)
 
     def pathfinding(self, start, end):
-        err, list_nodes = self.astar.find_path(start, end, self.board)
+        start = tuple([int(start[i]) for i in range(len(start))])
+        end = tuple([int(end[i]) for i in range(len(end))])
+        err, list_nodes = self.astar.find_path(pp.Coordinates(*start), pp.Coordinates(*end), self.board)
         if err:
             print("Astar error " + str(err))
             return None
@@ -325,11 +350,11 @@ class StratApp(object):
 
     def __init__(self):
         pygame.init()
-        self.fenetre = pygame.display.set_mode(
+        self.main_window = pygame.display.set_mode(
             (1920, 1080), RESIZABLE | DOUBLEBUF)
-        self.fenetre.fill(BACKGROUND_COLOR)
+        self.main_window.fill(BACKGROUND_COLOR)
         self.running = 1
-        self.board = BoardApp(self.fenetre)
+        self.board = BoardApp(self.main_window)
         self.last_wsize = pygame.display.get_surface().get_size()
 
         self.constructed_path = []
@@ -338,12 +363,12 @@ class StratApp(object):
         self.waypoints_pathfinding = []
         self.path_pathfinding = []
 
-        self.mode_frame = ModeFrame(self.fenetre, position=(0,0), dynamic_size=True, background_color=(255, 204, 0), text_color = (0,0,0))
-        self.info_frame = PermanantTextFrame(self.fenetre,"Some kind of info \r OUI" , position=(50,0), dynamic_size=True, background_color=(77, 166, 255), text_color = (0,0,0))
-        self.top_container = Container(self.fenetre,position=(20,2), dynamic_size=True,background_color=(42, 36, 36))
+        self.mode_frame = ModeFrame(self.main_window, position=(0,0), dynamic_size=True, background_color=(255, 204, 0), text_color = (0,0,0))
+        self.info_frame = PermanantTextFrame(self.main_window,"Some kind of info \nOUI", position=(50,0), dynamic_size=True, background_color=(77, 166, 255), text_color = (0,0,0))
+        self.top_container = Container(self.main_window,position=(2,2), dynamic_size=True,background_color=(42, 36, 36))
         self.top_container.add_frame(self.mode_frame)
         self.top_container.add_frame(self.info_frame)
-        self.right_container = Container(self.fenetre,position=(90,2), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
+        self.right_container = Container(self.main_window,position=(90,2), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
         self.frame_list = [self.board, self.top_container, self.right_container]
 
     def run(self):
@@ -417,8 +442,7 @@ class StratApp(object):
         if len(self.waypoints_pathfinding) >= 2:
             wp0 = self.waypoints_pathfinding[0]
             wp1 = self.waypoints_pathfinding[1]
-            returned_value = self.board.pathfinding(pp.Coordinates(
-                wp0[0], wp0[1]), pp.Coordinates(wp1[0], wp1[1]))
+            returned_value = self.board.pathfinding(wp0, wp1)
             if returned_value is not None:
                 self.path_pathfinding = returned_value
                 print("Astar from", wp0, " to ", wp1)
@@ -429,15 +453,13 @@ class StratApp(object):
         path = self.constructed_path.copy()
         wp0 = path.pop(0)
         wp1 = path.pop(0)
-        returned_value = self.board.pathfinding(pp.Coordinates(
-            wp0[0], wp0[1]), pp.Coordinates(wp1[0], wp1[1]))
+        returned_value = self.board.pathfinding(wp0, wp1)
         if returned_value is not None:
             self.path_pathfinding.extend(returned_value)
         for node in path: 
             wp0 = wp1
             wp1 = node
-            returned_value = self.board.pathfinding(pp.Coordinates(
-                wp0[0], wp0[1]), pp.Coordinates(wp1[0], wp1[1]))
+            returned_value = self.board.pathfinding(wp0,wp1)
             if returned_value is not None:
                 self.path_pathfinding.extend(returned_value)
 
