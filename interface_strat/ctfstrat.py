@@ -283,7 +283,7 @@ class BoardApp(Frame):
             self.print_obstacle(obstacle)
 
     def print_obstacle(self, obstacle):
-        x, y = self.pos_frame_to_screen((obstacle.pos.x, obstacle.pos.y))
+        x, y = self.pos_board_to_screen((obstacle.pos.x, obstacle.pos.y))
         resized_width, resized_height = self.size_board_to_screen((obstacle.dim.width, obstacle.dim.height))
         pygame.draw.rect(self.parent_window, (100, 20, 20), (x-math.floor(resized_width/2)+1,
                                                        y-math.floor(resized_height/2)+1, resized_width, resized_height), 0)
@@ -316,15 +316,16 @@ class BoardApp(Frame):
         return list_nodes
 
     def pos_board_to_frame(self, pos):
-        return ((pos[0]*self.size[0]/self.real_size[0]),
-            (pos[1]*self.size[1]/self.real_size[1]))
+        return ((pos[0]*100/self.real_size[0]),
+            (pos[1]*100/self.real_size[1]))
 
     def pos_frame_to_board(self, pos):
-        return ((pos[0]*self.real_size[0]/self.size[0]),
-            (pos[1]*self.real_size[1]/self.size[1]))
+        return ((pos[0]*self.real_size[0]/100),
+            (pos[1]*self.real_size[1]/100))
     
     def pos_screen_to_board(self, pos):
         rt = self.pos_screen_to_frame(pos)
+        print(rt)
         if rt is None:
             return None
         return self.pos_frame_to_board(rt)
@@ -364,7 +365,7 @@ class StratApp(object):
         self.path_pathfinding = []
 
         self.mode_frame = ModeFrame(self.main_window, position=(0,0), dynamic_size=True, background_color=(255, 204, 0), text_color = (0,0,0))
-        self.info_frame = PermanantTextFrame(self.main_window,"Some kind of info \nOUI", position=(50,0), dynamic_size=True, background_color=(77, 166, 255), text_color = (0,0,0))
+        self.info_frame = PermanantTextFrame(self.main_window,"CTF STRAT \nEDITION 2020", position=(50,0), dynamic_size=True, background_color=(77, 166, 255), text_color = (0,0,0))
         self.top_container = Container(self.main_window,position=(2,2), dynamic_size=True,background_color=(42, 36, 36))
         self.top_container.add_frame(self.mode_frame)
         self.top_container.add_frame(self.info_frame)
