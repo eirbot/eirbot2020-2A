@@ -3,6 +3,7 @@ from pygame.locals import *
 from pathlib import Path
 import pypath as pp  # pypath-fpa
 import math
+import time
 
 BACKGROUND_COLOR = (33, 33, 33)
 FPS = 144
@@ -237,13 +238,24 @@ class TextFrame(Frame):
         self.text_color = text_color
         self.height_line_jump = 20 # static
         self.font_size = 6 # percent
+
+    def max_line_len(self, text):
+        max_len = 0
+        for line in text.split('\n'):
+            len_line = len(line)
+            if len_line > max_len:
+                max_len = len_line
+        return max_len
     
-    def print_text(self, text, centered=True):
-        screen_font_size = self.size_frame_to_screen(self.font_size)
-        screen_height_line_jump = int(self.height_line_jump * screen_font_size/25)
-        if centered:
+    def print_text(self, text, centered_level=1, maximize=False):
+        if maximize:
+            screen_font_size = self.size_frame_to_screen(self.font_size*self.max_line_len(text)*4)
+        else:
+            screen_font_size = self.size_frame_to_screen(self.font_size)
+        screen_height_line_jump = int(self.height_line_jump * screen_font_size/25) 
+        if centered_level == 1:
             line_pos_x, line_pos_y = self.pos_frame_to_screen((2, 50))
-            line_pos_y -= screen_height_line_jump * text.count("\n")
+            line_pos_y -= screen_height_line_jump * text.count("\n") + screen_height_line_jump/2
         else:
             line_pos_x, line_pos_y = self.pos_frame_to_screen((2, 2))
         for line in text.split("\n"):
@@ -260,15 +272,24 @@ class PermanantTextFrame(TextFrame):
     def extra_display(self):
         self.print_text(self.text)
 
+class FpsFrame(TextFrame):
+    def __init__(self, parent_window, position=(0,0), size=(100,100), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=None, text_color=(255,255,255)):
+        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_fill_y=dynamic_fill_y, hovering=hovering, background_color=background_color, text_color=text_color)
+        self.previous_time = 0
+
+    def extra_display(self):
+        actual_time = time.time()
+        self.print_text(str(int(1/(actual_time - self.previous_time))), maximize=True)
+        self.previous_time = actual_time
 
 class ModeFrame(TextFrame):
     def __init__(self, parent_window, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=BACKGROUND_COLOR, text_color = (255, 255, 255)):
         super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, hovering=hovering, background_color=background_color, text_color=text_color)
-        self.current_mode = StratApp.NORMAL
+        self.current_mode = StratApp.HOME
     
     def extra_display(self):
         if self.current_mode == StratApp.NORMAL:
-            self.print_text("NORMAL")
+            self.print_text("HOME")
         elif self.current_mode == StratApp.EDIT_PATH:
             self.print_text("EDIT PATH")
         elif self.current_mode == StratApp.RENDER_PATH:
@@ -387,7 +408,7 @@ class BoardApp(FixedRatioFrame):
             (size[1]*self.real_size[1]/self.size[1]))
 
 class StratApp(object):
-    NORMAL = 0
+    HOME = 0
     EDIT_PATH = 1
     TEST_PATHFINDING = 2
     RENDER_PATH = 3
@@ -402,7 +423,7 @@ class StratApp(object):
         self.last_wsize = pygame.display.get_surface().get_size()
 
         self.constructed_path = []
-        self.mode = StratApp.NORMAL
+        self.mode = StratApp.HOME
 
         self.waypoints_pathfinding = []
         self.path_pathfinding = []
@@ -412,20 +433,22 @@ class StratApp(object):
         self.top_container = Container(self.main_window,position=(0,0), size=(100,20), dynamic_size=False ,background_color=(42, 36, 36))
         self.top_container.add_frame(self.mode_frame)
         self.top_container.add_frame(self.info_frame)
-        self.left_container = Container(self.main_window,position=(0,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
-        self.right_container = DynamicContentContainer(self.main_window,position=(85,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
-        self.right_container.add_content(StratApp.NORMAL, PermanantTextFrame(self.main_window,"ESC : Home\nE : Edit path\nR : Render Path\nP : Test Pathfinding"))
-        self.right_container.add_content(StratApp.RENDER_PATH, PermanantTextFrame(self.main_window,"Rendered!"))
+        self.left_container = Container(self.main_window,position=(0,0), dynamic_size=True, background_color=(42, 36, 36))
+        self.dyn_container = DynamicContentContainer(self.main_window,position=(0,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
+        self.dyn_container.add_content(StratApp.HOME, PermanantTextFrame(self.main_window,"ESC : Home\nE : Edit path\nR : Render Path\nP : Test Pathfinding"))
+        self.dyn_container.add_content(StratApp.RENDER_PATH, PermanantTextFrame(self.main_window,"Rendered!"))
+        self.right_container = Container(self.main_window, position=(85,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
+        self.right_container.add_frame([self.dyn_container, FpsFrame(self.main_window, position=(0,80), dynamic_size=True, background_color=(200, 36, 36))])
         self.left_container.add_frame([self.top_container, self.board])
         self.main_container.add_frame([self.left_container,self.right_container])
 
-        self.right_container.load_content(StratApp.NORMAL)
+        self.dyn_container.load_content(StratApp.HOME)
 
 
     def run(self):
         clock = pygame.time.Clock()
         while self.running:
-            clock.tick(FPS)
+            #clock.tick(FPS)
             for event in pygame.event.get():  # On parcours la liste de tous les événements reçus
                 self.event_handler(event)
             self.display()
@@ -438,7 +461,7 @@ class StratApp(object):
             self.main_container.update_parent_window_infos(event.size)
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE or event.key == K_n:
-                self.mode = StratApp.NORMAL
+                self.mode = StratApp.HOME
             if event.key == pygame.K_p:
                 self.mode = StratApp.TEST_PATHFINDING
             if event.key == pygame.K_e:
@@ -447,7 +470,7 @@ class StratApp(object):
                 self.mode = StratApp.RENDER_PATH
                 self.render_path()
             self.mode_frame.set_current_mode(self.mode)
-            self.right_container.load_content(self.mode)
+            self.dyn_container.load_content(self.mode)
         elif event.type == MOUSEBUTTONDOWN:
             if event.button == 1:
                 if self.mode == StratApp.EDIT_PATH:
