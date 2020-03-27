@@ -249,13 +249,13 @@ class TextFrame(Frame):
     
     def print_text(self, text, centered_level=1, maximize=False):
         if maximize:
-            screen_font_size = self.size_frame_to_screen(self.font_size*self.max_line_len(text)*4)
+            screen_font_size = self.size_frame_to_screen(self.font_size*25/self.max_line_len(text))
         else:
             screen_font_size = self.size_frame_to_screen(self.font_size)
         screen_height_line_jump = int(self.height_line_jump * screen_font_size/25) 
         if centered_level == 1:
             line_pos_x, line_pos_y = self.pos_frame_to_screen((2, 50))
-            line_pos_y -= screen_height_line_jump * text.count("\n") + screen_height_line_jump/2
+            line_pos_y -= screen_height_line_jump * text.count("\n") + screen_height_line_jump//2
         else:
             line_pos_x, line_pos_y = self.pos_frame_to_screen((2, 2))
         for line in text.split("\n"):
@@ -265,12 +265,13 @@ class TextFrame(Frame):
             line_pos_y += screen_height_line_jump
 
 class PermanantTextFrame(TextFrame):
-    def __init__(self, parent_window, text, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=None, text_color=(255,255,255)):
+    def __init__(self, parent_window, text, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=None, text_color=(255,255,255), maximize_size=False):
         super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_fill_y=dynamic_fill_y, hovering=hovering, background_color=background_color, text_color=text_color)
         self.text = text
+        self.maximize_size = maximize_size
     
     def extra_display(self):
-        self.print_text(self.text)
+        self.print_text(self.text, 1, self.maximize_size)
 
 class FpsFrame(TextFrame):
     def __init__(self, parent_window, position=(0,0), size=(100,100), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=None, text_color=(255,255,255)):
@@ -288,7 +289,7 @@ class ModeFrame(TextFrame):
         self.current_mode = StratApp.HOME
     
     def extra_display(self):
-        if self.current_mode == StratApp.NORMAL:
+        if self.current_mode == StratApp.HOME:
             self.print_text("HOME")
         elif self.current_mode == StratApp.EDIT_PATH:
             self.print_text("EDIT PATH")
@@ -309,6 +310,22 @@ class FixedRatioFrame(Frame):
     def update_size_and_position(self, frame_list):
         self.update_position()
         self.compute_dynamic_size(frame_list)
+    
+    def compute_dynamic_size(self, frame_list):
+        max_x = self.parent_window_size[0] + self.parent_window_position[0]
+        max_y = self.parent_window_size[1] + self.parent_window_position[1]
+
+        max_x = self.find_max_x_dynamic_size(frame_list, max_x)
+        self.size = (max(max_x - self.position[0]  - self.margin, 0), max(max_y - self.position[1]- self.margin, 0))
+        max_y = self.find_max_y_dynamic_size(frame_list, max_y)
+        self.size = (max(max_x - self.position[0] - self.margin, 0), max(max_y - self.position[1]- self.margin, 0))
+
+        if self.size[0] * self.ratio_x_to_y < self.size[1] :
+            self.size = (int(self.size[0]), int(self.size[0] * self.ratio_x_to_y))
+        else:
+            self.size = (int(self.size[1]/self.ratio_x_to_y), int(self.size[1]))
+
+
 
 
 class BoardApp(FixedRatioFrame):
@@ -435,7 +452,7 @@ class StratApp(object):
         self.top_container.add_frame(self.info_frame)
         self.left_container = Container(self.main_window,position=(0,0), dynamic_size=True, background_color=(42, 36, 36))
         self.dyn_container = DynamicContentContainer(self.main_window,position=(0,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
-        self.dyn_container.add_content(StratApp.HOME, PermanantTextFrame(self.main_window,"ESC : Home\nE : Edit path\nR : Render Path\nP : Test Pathfinding"))
+        self.dyn_container.add_content(StratApp.HOME, PermanantTextFrame(self.main_window,"ESC : Home\nE : Edit path\nR : Render Path\nP : Test Pathfinding", maximize_size=True))
         self.dyn_container.add_content(StratApp.RENDER_PATH, PermanantTextFrame(self.main_window,"Rendered!"))
         self.right_container = Container(self.main_window, position=(85,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
         self.right_container.add_frame([self.dyn_container, FpsFrame(self.main_window, position=(0,80), dynamic_size=True, background_color=(200, 36, 36))])
