@@ -36,11 +36,11 @@ class Frame(object):
 
 
     def update_position(self):
-        self.position = (int(self.percent_position[0]*self.parent_window_size[0]/100)+self.parent_window_position[0],
-            int(self.percent_position[1]*self.parent_window_size[1]/100)+self.parent_window_position[1])
+        self.position = ((int(self.percent_position[0]*self.parent_window_size[0]/100)+self.parent_window_position[0]),
+                (int(self.percent_position[1]*self.parent_window_size[1]/100)+self.parent_window_position[1]))
     
     def update_size(self):
-        self.size = size_frame_to_screen(self, self.percent_size)
+        self.size = size_frame_to_screen(self.percent_size)
 
     def update_size_and_position(self, frame_list):
         self.update_position()
@@ -50,43 +50,41 @@ class Frame(object):
             else:
                 raise AttributeError(frame_list)
         else:
-            self.update_position()
+            self.update_size()
 
     def compute_dynamic_size(self, frame_list):
         self.size = (10,10)
-        max_x = self.parent_window_size[0]
-        max_y = self.parent_window_size[1]
+        max_x = self.parent_window_size[0] + self.parent_window_position[0]
+        max_y = self.parent_window_size[1] + self.parent_window_position[1]
 
         if self.dynamic_fill_y:
-            for frame in frame_list:
-                if frame.get_id() != self.id:
-                    frame_pos = frame.get_position()    
-                    frame_size = frame.get_size()                                              
-                    if frame_pos[1] < max_y and frame_pos[1] + frame_size[1] > self.position[1] and self.is_frame_facing(frame, "y"):
-                        max_y = frame_pos[1]-1
-            self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
-            for frame in frame_list:
-                if frame.get_id() != self.id:
-                    frame_pos = frame.get_position()  
-                    frame_size = frame.get_size()                     
-                    if frame_pos[0] < max_x and frame_pos[0] + frame_size[0] > self.position[0] and self.is_frame_facing(frame, "x"):
-                        max_x = frame_pos[0]-1
-            self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
+            max_y = self.find_max_y_dynamic_size(frame_list, max_y)
+            self.size = (int(max(max_x - self.position[0] - self.margin, 0)), int(max(max_y - self.position[1]- self.margin, 0)))
+            max_x = self.find_max_x_dynamic_size(frame_list, max_x)
+            self.size = (int(max(max_x - self.position[0] - self.margin, 0)), int(max(max_y - self.position[1]- self.margin, 0)))
         else:
-            for frame in frame_list:
-                if frame.get_id() != self.id:
-                    frame_pos = frame.get_position()
-                    frame_size = frame.get_size()                       
-                    if frame_pos[0] < max_x and frame_pos[0] + frame_size[0] > self.position[0]  and self.is_frame_facing(frame, "x"):
-                        max_x = frame_pos[0]-1
-                    self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
-            for frame in frame_list:
-                if frame.get_id() != self.id:
-                    frame_pos = frame.get_position()    
-                    frame_size = frame.get_size()        
-                    if frame_pos[1] < max_y and frame_pos[1] + frame_size[1] > self.position[1] and self.is_frame_facing(frame, "y"):
-                        max_y = frame_pos[1]-1
-            self.size = (max((max_x - self.position[0] - self.margin, 0)), max((max_y - self.position[1]- self.margin, 0)))
+            max_x = self.find_max_x_dynamic_size(frame_list, max_x)
+            self.size = (int(max(max_x - self.position[0]  - self.margin, 0)), int(max(max_y - self.position[1]- self.margin, 0)))
+            max_y = self.find_max_y_dynamic_size(frame_list, max_y)
+            self.size = (int(max(max_x - self.position[0] - self.margin, 0)), int(max(max_y - self.position[1]- self.margin, 0)))
+
+    def find_max_x_dynamic_size(self, frame_list, max_x):
+        for frame in frame_list:
+            if frame.get_id() != self.id:
+                frame_pos = frame.get_position()  
+                frame_size = frame.get_size()                     
+                if frame_pos[0] < max_x and frame_pos[0] + frame_size[0] > self.position[0] and self.is_frame_facing(frame, "x"):
+                    max_x = frame_pos[0]-1
+        return max_x
+
+    def find_max_y_dynamic_size(self, frame_list, max_y):
+        for frame in frame_list:
+            if frame.get_id() != self.id:
+                frame_pos = frame.get_position()    
+                frame_size = frame.get_size()                                              
+                if frame_pos[1] < max_y and frame_pos[1] + frame_size[1] > self.position[1] and self.is_frame_facing(frame, "y"):
+                    max_y = frame_pos[1]-1
+        return max_y
 
     
     def is_frame_facing(self, frame, direction = "x"):
@@ -135,18 +133,18 @@ class Frame(object):
         y = (pos[1] - self.position[1])
         if x < 0 or y < 0 or x >= self.size[0] or y >= self.size[1]:
             return None
-        return (x, y)
+        return (x*100/self.size[0], y*100/self.size[1])
 
-    def pos_frame_to_screen(self, pos):
-        x = (pos[0] + self.position[0])
-        y = (pos[1] + self.position[1])
-        return (x, y)
     
     def size_frame_to_screen(self, size):
         if isinstance(size, tuple):
-            return (int(size[0]/100 *self.parent_window_size[0]),
-                int(size[1]/100 *self.parent_window_size[1]))
-        return int(size *self.parent_window_size[0]/100)
+            return (int(size[0]/100 *self.size[0]),
+                int(size[1]/100 *self.size[1]))
+        return int(size *self.size[0]/100)
+
+    def pos_frame_to_screen(self, pos):
+        return ((int(pos[0]*self.size[0]/100)+self.position[0]),
+                (int(pos[1]*self.size[1]/100)+self.position[1]))
     
     def get_position(self):
         return self.position
@@ -184,9 +182,9 @@ class TextFrame(Frame):
         self.text_color = text_color
     
     def print_text(self, text):
-        myfont = pygame.font.SysFont("freemono", self.size_frame_to_screen(2))
+        myfont = pygame.font.SysFont("freemono", self.size_frame_to_screen(6))
         label = myfont.render(text, 1, self.text_color)
-        self.parent_window.blit(label, self.pos_frame_to_screen((10, 10)))
+        self.parent_window.blit(label, self.pos_frame_to_screen((2, 50)))
 
 class PermanantTextFrame(TextFrame):
     def __init__(self, parent_window, text, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, dynamic_pos=False, hovering=False, background_color=None, text_color=(255,255,255)):
@@ -293,12 +291,12 @@ class BoardApp(Frame):
         return list_nodes
 
     def pos_board_to_frame(self, pos):
-        return (round(pos[0]*self.size[0]/self.real_size[0]),
-            round(pos[1]*self.size[1]/self.real_size[1]))
+        return ((pos[0]*self.size[0]/self.real_size[0]),
+            (pos[1]*self.size[1]/self.real_size[1]))
 
     def pos_frame_to_board(self, pos):
-        return (round(pos[0]*self.real_size[0]/self.size[0]),
-            round(pos[1]*self.real_size[1]/self.size[1]))
+        return ((pos[0]*self.real_size[0]/self.size[0]),
+            (pos[1]*self.real_size[1]/self.size[1]))
     
     def pos_screen_to_board(self, pos):
         rt = self.pos_screen_to_frame(pos)
@@ -316,8 +314,8 @@ class BoardApp(Frame):
         return round(size*self.size[0]/self.real_size[0])
 
     def size_screen_to_board(self, size):
-        return (round(size[0]*self.real_size[0]/self.size[0]),
-            round(size[1]*self.real_size[1]/self.size[1]))
+        return ((size[0]*self.real_size[0]/self.size[0]),
+            (size[1]*self.real_size[1]/self.size[1]))
 
 class StratApp(object):
     NORMAL = 0
