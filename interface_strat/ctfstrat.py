@@ -192,8 +192,47 @@ class Container(Frame):
         for frame in self.list_frames:
             frame.set_margin(margin)
 
+
+class Content():
+    def __init__(self, unique_id=0, content=[]):
+        self.id = unique_id
+        self.content = []
+        self.add_content(content)
+    
+    def add_content(self, content):
+        if isinstance(content, list):
+            self.content.extend(content)
+        else:
+            self.content.append(content)
+    
+    def get_id(self):
+        return self.id 
+    
+    def get_content(self):
+        return self.content
+class DynamicContentContainer(Container):
+    def __init__(self, parent_window, position=(0,0), size=(100,100), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=(255,255,255)):
+        super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_fill_y=dynamic_fill_y, hovering=hovering, background_color=background_color)
+        self.list_content = []
+
+    def add_content(self, unique_id, content):
+        found=0
+        for cnt in self.list_content:
+            if cnt.get_id() == unique_id:
+                found=1
+                cnt.add_content(content)
+                break
+        if not found:
+            self.list_content.append(Content(unique_id, content))
+    
+    def load_content(self, unique_id):
+        for cnt in self.list_content:
+            if cnt.get_id() == unique_id:
+                self.list_frames = cnt.content
+
+
 class TextFrame(Frame):
-    def __init__(self, parent_window, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=None, text_color = (255, 255, 255)):
+    def __init__(self, parent_window, position=(0,0), size=(100,100), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=None, text_color = (255, 255, 255)):
         super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, hovering=hovering, background_color=background_color)
         self.text_color = text_color
         self.height_line_jump = 20 # static
@@ -330,7 +369,6 @@ class BoardApp(FixedRatioFrame):
     
     def pos_screen_to_board(self, pos):
         rt = self.pos_screen_to_frame(pos)
-        print(rt)
         if rt is None:
             return None
         return self.pos_frame_to_board(rt)
@@ -375,9 +413,13 @@ class StratApp(object):
         self.top_container.add_frame(self.mode_frame)
         self.top_container.add_frame(self.info_frame)
         self.left_container = Container(self.main_window,position=(0,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
-        self.right_container = Container(self.main_window,position=(85,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
+        self.right_container = DynamicContentContainer(self.main_window,position=(85,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
+        self.right_container.add_content(StratApp.NORMAL, PermanantTextFrame(self.main_window,"ESC : Home\nE : Edit path\nR : Render Path\nP : Test Pathfinding"))
+        self.right_container.add_content(StratApp.RENDER_PATH, PermanantTextFrame(self.main_window,"Rendered!"))
         self.left_container.add_frame([self.top_container, self.board])
         self.main_container.add_frame([self.left_container,self.right_container])
+
+        self.right_container.load_content(StratApp.NORMAL)
 
 
     def run(self):
@@ -405,6 +447,7 @@ class StratApp(object):
                 self.mode = StratApp.RENDER_PATH
                 self.render_path()
             self.mode_frame.set_current_mode(self.mode)
+            self.right_container.load_content(self.mode)
         elif event.type == MOUSEBUTTONDOWN:
             if event.button == 1:
                 if self.mode == StratApp.EDIT_PATH:
