@@ -160,7 +160,17 @@ class Frame(object):
     
     def set_margin(self, margin):
         self.margin = int(margin)
+
+    def pos_in_frame(self, position):
+        x = (position[0] - self.position[0])
+        y = (position[1] - self.position[1])
+        if x < 0 or y < 0 or x >= self.size[0] or y >= self.size[1]:
+            return False
+        else:
+            return True
     
+    def handle_press_event(self, position):
+        pass
 
 
 class Container(Frame):
@@ -191,6 +201,12 @@ class Container(Frame):
     def set_inner_margin(self, margin):
         for frame in self.list_frames:
             frame.set_margin(margin)
+    
+    def handle_press_event(self, position):
+        if self.pos_in_frame(position):
+            for frame in self.list_frames:
+                frame.handle_press_event(position)
+
 
 
 class Content():
@@ -271,6 +287,45 @@ class PermanantTextFrame(TextFrame):
     
     def extra_display(self):
         self.print_text(self.text, 1, self.maximize_size)
+
+
+class ButonFrame(PermanantTextFrame):
+    def __init__(self, parent_window, text, callback_fun=None, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=None, text_color=(255,255,255), maximize_size=False):
+        super().__init__(parent_window, text, position=position, size=size, dynamic_size=dynamic_size, dynamic_fill_y=dynamic_fill_y, hovering=hovering, background_color=background_color, text_color=text_color, maximize_size=True)
+        self.clicked = False
+        self.callback = callback_fun
+        self.initial_background_color = background_color
+        self.animation_counter = 0
+        
+
+    def was_clicked(self):
+        ans = self.clicked
+        self.clicked = 0
+        return ans
+
+    def extra_display(self):
+        if self.was_clicked():
+            self.init_click_feedback()
+        self.click_feedback()
+        super().extra_display()
+    
+    def init_click_feedback(self):
+        self.animation_counter = FPS//10
+
+    def click_feedback(self):
+        if self.animation_counter != 0:
+            self.background_color = (0, 0, 0)
+            self.animation_counter -= 1
+        else:
+            self.background_color = self.initial_background_color
+
+
+    def handle_press_event(self, position):
+        if self.pos_in_frame(position):
+            self.clicked = 1
+            if self.callback is not None:
+                self.callback()
+
 
 class FpsFrame(TextFrame):
     def __init__(self, parent_window, position=(0,0), size=(100,100), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=None, text_color=(255,255,255)):
@@ -462,6 +517,7 @@ class StratApp(object):
         self.dyn_container = DynamicContentContainer(self.main_window,position=(0,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
         self.dyn_container.add_content(StratApp.HOME, PermanantTextFrame(self.main_window,"ESC : Home\nE : Edit path\nR : Render Path\nP : Test Pathfinding", maximize_size=True))
         self.dyn_container.add_content(StratApp.RENDER_PATH, PermanantTextFrame(self.main_window,"Rendered!"))
+        self.dyn_container.add_content(StratApp.EDIT_PATH, ButonFrame(self.main_window,"Click to save path", callback_fun=self.copy_waypoints_to_clipboard,dynamic_size=True))
         self.right_container = Container(self.main_window, position=(85,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
         self.right_container.add_frame([self.dyn_container, FpsFrame(self.main_window, position=(0,80), dynamic_size=True, background_color=(200, 36, 36))])
         self.left_container.add_frame([self.top_container, self.board])
@@ -498,6 +554,7 @@ class StratApp(object):
             self.dyn_container.load_content(self.mode)
         elif event.type == MOUSEBUTTONDOWN:
             if event.button == 1:
+                self.main_container.handle_press_event(event.pos)
                 if self.mode == StratApp.EDIT_PATH:
                     self.construct_path(event.pos)
                 elif self.mode == StratApp.TEST_PATHFINDING:
@@ -559,6 +616,10 @@ class StratApp(object):
             returned_value = self.board.pathfinding(wp0,wp1)
             if returned_value is not None:
                 self.path_pathfinding.extend(returned_value)
+    
+    def copy_waypoints_to_clipboard(self):
+        print("Copied!")
+        pass
 
 
 class Robot(object):
