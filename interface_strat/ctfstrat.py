@@ -634,7 +634,6 @@ class StratApp(object):
             print("Bad clipboard_content, expected list of tuple (x,y)", cliboard)
         if converted_clipboard:
             self.constructed_path = list_waypoint
-            print("b")
 
 
         
