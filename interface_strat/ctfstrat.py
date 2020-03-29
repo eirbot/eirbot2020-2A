@@ -4,6 +4,8 @@ from pathlib import Path
 import pypath as pp  # pypath-fpa
 import math
 import time
+import pyperclip
+import ast
 
 BACKGROUND_COLOR = (33, 33, 33)
 FPS = 60
@@ -517,7 +519,8 @@ class StratApp(object):
         self.dyn_container = DynamicContentContainer(self.main_window,position=(0,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
         self.dyn_container.add_content(StratApp.HOME, PermanantTextFrame(self.main_window,"ESC : Home\nE : Edit path\nR : Render Path\nP : Test Pathfinding", maximize_size=True))
         self.dyn_container.add_content(StratApp.RENDER_PATH, PermanantTextFrame(self.main_window,"Rendered!"))
-        self.dyn_container.add_content(StratApp.EDIT_PATH, ButonFrame(self.main_window,"Click to save path", callback_fun=self.copy_waypoints_to_clipboard,dynamic_size=True))
+        self.dyn_container.add_content(StratApp.EDIT_PATH, ButonFrame(self.main_window,"Click to save path", position=(0,0) ,callback_fun=self.copy_waypoints_to_clipboard,dynamic_size=True))
+        self.dyn_container.add_content(StratApp.EDIT_PATH, ButonFrame(self.main_window,"Click to importy path", position=(0,50) ,callback_fun=self.import_waypoints_from_clipboard,dynamic_size=True))
         self.right_container = Container(self.main_window, position=(85,0), dynamic_size=True, dynamic_fill_y=True, background_color=(42, 36, 36))
         self.right_container.add_frame([self.dyn_container, FpsFrame(self.main_window, position=(0,80), dynamic_size=True, background_color=(200, 36, 36))])
         self.left_container.add_frame([self.top_container, self.board])
@@ -618,8 +621,26 @@ class StratApp(object):
                 self.path_pathfinding.extend(returned_value)
     
     def copy_waypoints_to_clipboard(self):
-        print("Copied!")
-        pass
+        int_path = [(int(x[0]),int(x[1])) for x in self.constructed_path]
+        pyperclip.copy(str(int_path))
+    
+    def import_waypoints_from_clipboard(self):
+        converted_clipboard = True
+        cliboard = pyperclip.paste()
+        try: 
+            list_waypoint = ast.literal_eval(cliboard)
+        except:
+            converted_clipboard = False
+            print("Bad clipboard_content, expected list of tuple (x,y)", cliboard)
+        if converted_clipboard:
+            self.constructed_path = list_waypoint
+            print("b")
+
+
+        
+        
+        
+        
 
 
 class Robot(object):
