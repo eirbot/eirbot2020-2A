@@ -6,7 +6,7 @@ import math
 import time
 
 BACKGROUND_COLOR = (33, 33, 33)
-FPS = 144
+FPS = 60
 
 DEFAULT_LIST_OBSTACLE = [pp.Rectangle(pp.Coordinates(60, 20), pp.Size(2, 40)),
                          pp.Rectangle(pp.Coordinates(
@@ -116,7 +116,6 @@ class Frame(object):
         if self.background_color is not None:
             pygame.draw.rect(self.parent_window, self.background_color, (*self.position, *self.size), 0)
         pygame.draw.rect(self.parent_window, (0, 0, 0), (*self.position, *self.size), 2) # borders
-        # pygame.draw.rect(self.parent_window, (0, 255, 0), (*self.position, 4,4), 0) # debug purpose
         self.extra_display()
 
     def extra_display(self):
@@ -277,11 +276,20 @@ class FpsFrame(TextFrame):
     def __init__(self, parent_window, position=(0,0), size=(100,100), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=None, text_color=(255,255,255)):
         super().__init__(parent_window, position=position, size=size, dynamic_size=dynamic_size, dynamic_fill_y=dynamic_fill_y, hovering=hovering, background_color=background_color, text_color=text_color)
         self.previous_time = 0
+        self.count_per_second = 0
+        self.fps = 0
 
     def extra_display(self):
         actual_time = time.time()
-        self.print_text(str(int(1/(actual_time - self.previous_time))), maximize=True)
-        self.previous_time = actual_time
+        self.count_per_second += 1
+        time_diff = (actual_time - self.previous_time)
+        if time_diff > 0.5:
+            self.fps = int(self.count_per_second/time_diff)
+            self.count_per_second = 0
+            self.previous_time = actual_time
+        self.print_text(str(self.fps), maximize=True)
+    
+
 
 class ModeFrame(TextFrame):
     def __init__(self, parent_window, position=(0,0), size=(100,70), dynamic_size=False, dynamic_fill_y=False, hovering=False, background_color=BACKGROUND_COLOR, text_color = (255, 255, 255)):
@@ -465,7 +473,7 @@ class StratApp(object):
     def run(self):
         clock = pygame.time.Clock()
         while self.running:
-            #clock.tick(FPS)
+            clock.tick(FPS)
             for event in pygame.event.get():  # On parcours la liste de tous les événements reçus
                 self.event_handler(event)
             self.display()
