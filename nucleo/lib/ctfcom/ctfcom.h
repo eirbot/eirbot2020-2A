@@ -60,7 +60,7 @@ void Ctfcom::generic_send(COMMAND cmd, NoTypeDataPack... args){
     const uint32_t len = (sizeof(args) + ...) +1;
     //uint8_t *buffer = (uint8_t *)malloc(len);
     uint8_t buffer[len];
-    buffer[0] = get_pos;
+    buffer[0] = cmd;
     build_data_frame_recursive(buffer, 1, args...);
     send(buffer, len);
     //free(buffer);
