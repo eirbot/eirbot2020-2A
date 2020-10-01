@@ -397,7 +397,7 @@ class BoardApp(FixedRatioFrame):
     def __init__(self, parent_window, ratio_x_to_y=1, position=(0,0), size=(100,100), hovering=False, background_color=None, margin=0):
         super().__init__(parent_window, ratio_x_to_y=ratio_x_to_y, position=position, size=size, hovering=hovering, background_color=background_color, margin=margin)
         self.real_size = (300, 200)  # En cm
-        self.board = pp.Field(self.real_size[0] * 10, self.real_size[1] * 10, 200)
+        self.board = pp.Field(self.real_size[0] , self.real_size[1] , 20)
         self.add_list_obstacles(DEFAULT_LIST_OBSTACLE)
         self.astar = pp.Castar()
         board_path = Path("ressources/board_1920_1280.png").absolute()
